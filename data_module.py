@@ -19,6 +19,20 @@ def load_data():
 
     return pd.DataFrame(data)
 
+def data_quality_report(df):
+    """
+    Generate a basic data quality report.
+    """
+
+    report = {
+        "total_rows": len(df),
+        "total_columns": len(df.columns),
+        "missing_values": int(df.isnull().sum().sum()),
+        "duplicate_rows": int(df.duplicated().sum())
+    }
+
+    return report
+
 
 def validate_data(df):
     required_columns = [
