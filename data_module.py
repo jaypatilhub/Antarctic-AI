@@ -2,10 +2,11 @@ import os
 import pandas as pd
 import xarray as xr
 import numpy as np
+from pyproj import Transformer
 
 
 # ==================================================
-# EXISTING DATAFRAME FUNCTIONS
+# DATAFRAME FUNCTIONS
 # ==================================================
 
 def load_data():
@@ -99,7 +100,7 @@ def preprocess_data(df):
 
 
 # ==================================================
-# ANTARCTIC NETCDF DATA FUNCTIONS
+# NETCDF FUNCTIONS
 # ==================================================
 
 def load_netcdf_data(file_path):
@@ -133,17 +134,19 @@ def validate_netcdf_data(ds):
         "cdr_seaice_conc_interp_temporal_flag"
     ]
 
-    # Check required variables
     for variable in required_variables:
         if variable not in ds.variables:
             raise ValueError(
                 f"Missing required variable: {variable}"
             )
 
-    # Check sea-ice dimensions
     sea_ice = ds["cdr_seaice_conc"]
 
-    expected_dimensions = {"time", "x", "y"}
+    expected_dimensions = {
+        "time",
+        "x",
+        "y"
+    }
 
     if not expected_dimensions.issubset(
         set(sea_ice.dims)
@@ -152,15 +155,12 @@ def validate_netcdf_data(ds):
             f"Unexpected dimensions: {sea_ice.dims}"
         )
 
-    # Get actual numeric values
     values = sea_ice.values
 
-    # Remove NaN values only for range checking
     valid_values = values[
         ~np.isnan(values)
     ]
 
-    # Check sea-ice concentration range
     if valid_values.size > 0:
 
         if valid_values.min() < 0:
@@ -180,15 +180,13 @@ def clean_netcdf_data(ds):
     """
     Clean Antarctic NetCDF dataset.
 
-    Missing values are preserved because
-    they may represent unavailable observations.
+    Missing values are preserved.
     """
 
     ds = ds.copy()
 
     sea_ice = ds["cdr_seaice_conc"]
 
-    # Keep valid values and preserve NaN values
     ds["cdr_seaice_conc"] = sea_ice.where(
         sea_ice >= 0
     )
@@ -198,18 +196,80 @@ def clean_netcdf_data(ds):
 
 def preprocess_netcdf_data(ds):
     """
-    Prepare NetCDF dataset for other modules.
+    Prepare NetCDF dataset for downstream modules.
     """
 
     ds = ds.copy()
 
-    # Convert concentration to float32
     ds["cdr_seaice_conc"] = ds[
         "cdr_seaice_conc"
     ].astype("float32")
 
     return ds
 
+
+# ==================================================
+# LATITUDE / LONGITUDE CONVERSION
+# ==================================================
+
+def add_latitude_longitude(ds):
+    """
+    Convert Antarctic Polar Stereographic coordinates
+    from EPSG:3412 to latitude/longitude EPSG:4326.
+    """
+
+    transformer = Transformer.from_crs(
+        "EPSG:3412",
+        "EPSG:4326",
+        always_xy=True
+    )
+
+    # Original x and y coordinates
+    x = ds["x"].values
+    y = ds["y"].values
+
+    # Create complete 2D grid
+    x_grid, y_grid = np.meshgrid(
+        x,
+        y
+    )
+
+    # Convert the complete grid
+    lon, lat = transformer.transform(
+        x_grid,
+        y_grid
+    )
+
+    ds = ds.copy()
+
+    # Add 2D longitude
+    ds["longitude"] = (
+        ("y", "x"),
+        lon
+    )
+
+    # Add 2D latitude
+    ds["latitude"] = (
+        ("y", "x"),
+        lat
+    )
+
+    ds["longitude"].attrs = {
+        "units": "degrees_east",
+        "long_name": "Longitude"
+    }
+
+    ds["latitude"].attrs = {
+        "units": "degrees_north",
+        "long_name": "Latitude"
+    }
+
+    return ds
+
+
+# ==================================================
+# SAVE NETCDF
+# ==================================================
 
 def save_netcdf_data(ds, output_path):
     """
