@@ -397,3 +397,26 @@ def export_netcdf_to_csv(ds, output_path):
     )
 
     return output_path
+
+def run_data_pipeline(input_path, output_path):
+    """
+    Run the complete Antarctic sea-ice data processing pipeline.
+
+    Pipeline:
+    Load → Validate → Clean → Preprocess →
+    Add Latitude/Longitude → Export CSV
+    """
+
+    ds = load_netcdf_data(input_path)
+
+    validate_netcdf_data(ds)
+
+    ds = clean_netcdf_data(ds)
+
+    ds = preprocess_netcdf_data(ds)
+
+    ds = add_latitude_longitude(ds)
+
+    export_netcdf_to_csv(ds, output_path)
+
+    return output_path
