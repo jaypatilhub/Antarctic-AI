@@ -292,3 +292,61 @@ def save_netcdf_data(ds, output_path):
     )
 
     return output_path
+def export_netcdf_to_csv(ds, output_path):
+    """
+    Export Antarctic sea-ice NetCDF data to CSV format.
+
+    Each row represents one grid cell.
+    """
+
+    df = ds.to_dataframe().reset_index()
+
+    column_mapping = {
+        "cdr_seaice_conc": "sea_ice_concentration",
+        "cdr_seaice_conc_stdev": "sea_ice_stdev",
+        "cdr_seaice_conc_qa_flag": "qa_flag",
+        "cdr_seaice_conc_interp_spatial_flag":
+            "spatial_interpolation_flag",
+        "cdr_seaice_conc_interp_temporal_flag":
+            "temporal_interpolation_flag"
+    }
+
+    df = df.rename(
+        columns=column_mapping
+    )
+
+    required_columns = [
+        "time",
+        "latitude",
+        "longitude",
+        "sea_ice_concentration",
+        "sea_ice_stdev",
+        "qa_flag",
+        "spatial_interpolation_flag",
+        "temporal_interpolation_flag"
+    ]
+
+    df = df[
+        [
+            column
+            for column in required_columns
+            if column in df.columns
+        ]
+    ]
+
+    output_directory = os.path.dirname(
+        output_path
+    )
+
+    if output_directory:
+        os.makedirs(
+            output_directory,
+            exist_ok=True
+        )
+
+    df.to_csv(
+        output_path,
+        index=False
+    )
+
+    return output_path
