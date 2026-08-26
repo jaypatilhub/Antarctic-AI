@@ -21,15 +21,34 @@ def load_data():
 
 def data_quality_report(df):
     """
-    Generate a basic data quality report.
+    Generate a detailed data quality report.
     """
 
     report = {
         "total_rows": len(df),
         "total_columns": len(df.columns),
         "missing_values": int(df.isnull().sum().sum()),
+        "missing_by_column": df.isnull().sum().to_dict(),
         "duplicate_rows": int(df.duplicated().sum())
     }
+
+    if "latitude" in df.columns:
+        report["latitude_range"] = (
+            float(df["latitude"].min()),
+            float(df["latitude"].max())
+        )
+
+    if "longitude" in df.columns:
+        report["longitude_range"] = (
+            float(df["longitude"].min()),
+            float(df["longitude"].max())
+        )
+
+    if "sea_ice_concentration" in df.columns:
+        report["sea_ice_concentration_range"] = (
+            float(df["sea_ice_concentration"].min()),
+            float(df["sea_ice_concentration"].max())
+        )
 
     return report
 
