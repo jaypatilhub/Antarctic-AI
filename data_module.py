@@ -52,6 +52,20 @@ def data_quality_report(df):
 
     return report
 
+def load_processed_data(file_path):
+    """
+    Load processed Antarctic data from CSV.
+    """
+
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(
+            f"Processed data file not found: {file_path}"
+        )
+
+    df = pd.read_csv(file_path)
+
+    return df
+
 
 def validate_data(df):
     required_columns = [
