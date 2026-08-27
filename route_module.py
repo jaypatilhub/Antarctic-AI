@@ -1,7 +1,9 @@
 def calculate_route_risk(distance_km, ice_risk):
     """
-    Simple demo logic for Antarctic safe-route assessment.
-    This is a prototype rule-based system, not a real navigation model.
+    Calculates a prototype route risk level.
+
+    This is a rule-based prototype, not a real
+    scientific navigation model.
     """
 
     ice_risk = ice_risk.strip().upper()
@@ -24,7 +26,7 @@ def calculate_route_risk(distance_km, ice_risk):
 
 def recommend_route(distance_km, ice_risk):
     """
-    Returns a simple route recommendation.
+    Returns a route recommendation based on route risk.
     """
 
     risk = calculate_route_risk(distance_km, ice_risk)
@@ -32,7 +34,8 @@ def recommend_route(distance_km, ice_risk):
     if risk == "INVALID":
         return {
             "status": "INVALID",
-            "recommendation": "Invalid route input provided."
+            "recommendation": "Invalid route input provided.",
+            "reason": "Invalid distance or ice risk."
         }
 
     elif risk == "DANGER":
@@ -59,7 +62,7 @@ def recommend_route(distance_km, ice_risk):
 
 def compare_routes(route_a, route_b):
     """
-    Compares two demo routes and returns their risk levels.
+    Compares two candidate routes and recommends a safer route.
     """
 
     risk_a = calculate_route_risk(
@@ -73,7 +76,7 @@ def compare_routes(route_a, route_b):
     )
 
     if risk_a == "SAFE" and risk_b != "SAFE":
-            recommended = "Route A"
+        recommended = "Route A"
 
     elif risk_b == "SAFE" and risk_a != "SAFE":
         recommended = "Route B"
@@ -91,12 +94,55 @@ def compare_routes(route_a, route_b):
     }
 
 
+def recommend_best_route(routes):
+    """
+    Selects the safest route from multiple candidate routes.
+
+    This is a prototype rule-based selection,
+    not a real scientific navigation algorithm.
+    """
+
+    if not routes:
+        return {
+            "status": "INVALID",
+            "recommendation": "No candidate routes provided."
+        }
+
+    safe_routes = []
+
+    for route in routes:
+        risk = calculate_route_risk(
+            route["distance_km"],
+            route["ice_risk"]
+        )
+
+        if risk == "SAFE":
+            safe_routes.append(route)
+
+    if not safe_routes:
+        return {
+            "status": "DANGER",
+            "recommendation": "No safe candidate route found."
+        }
+
+    best_route = min(
+        safe_routes,
+        key=lambda route: route["distance_km"]
+    )
+
+    return {
+        "status": "SAFE",
+        "recommendation": "Safest candidate route selected.",
+        "route": best_route
+    }
+
+
 if __name__ == "__main__":
     test_cases = [
         (3, "HIGH"),
         (10, "MEDIUM"),
         (20, "LOW"),
-        (50, "LOW"),
+        (50, "LOW")
     ]
 
     for distance, ice_risk in test_cases:
