@@ -77,6 +77,20 @@ def calculate_overall_risk(distance, sea_ice_condition):
         return distance_risk
     else:
         return ice_risk
+    
+def calculate_risk_from_data(distance_km, sea_ice_concentration):
+    """
+    Calculate overall risk using distance and sea-ice concentration.
+    """
+
+    sea_ice_condition = classify_sea_ice_concentration(
+        sea_ice_concentration
+    )
+
+    return calculate_overall_risk(
+        distance_km,
+        sea_ice_condition
+    )
             
         
 def get_risk_reason(distance_km):
