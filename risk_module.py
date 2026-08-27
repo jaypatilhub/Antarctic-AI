@@ -95,21 +95,23 @@ def calculate_risk_from_data(distance_km, sea_ice_concentration):
         
 def get_risk_reason(distance_km):
     """
-    Give a simple explanation for the calculated risk.
+    Give a clear explanation for the calculated risk.
     """
 
+    if distance_km < 0:
+        raise ValueError("Distance cannot be negative.")
+
     if distance_km <= 5:
-        return "Vessel is extremely close to an iceberg."
+        return "CRITICAL: Vessel is extremely close to an iceberg."
 
     elif distance_km <= 15:
-        return "Vessel is relatively close to an iceberg."
+        return "HIGH: Vessel is relatively close to an iceberg."
 
     elif distance_km <= 30:
-        return "Vessel has a moderate distance from an iceberg."
+        return "MEDIUM: Vessel has a moderate distance from an iceberg."
 
     else:
-        return "Vessel is at a relatively safe distance from an iceberg."
-
+        return "LOW: Vessel is at a relatively safe distance from an iceberg."
 
 if __name__ == "__main__":
     test_distances = [3, 10, 20, 50]
