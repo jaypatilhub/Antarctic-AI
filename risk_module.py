@@ -92,6 +92,27 @@ def calculate_risk_from_data(distance_km, sea_ice_concentration):
         sea_ice_condition
     )
     
+def assess_trajectory_risk(speed_knots=None, heading_degrees=None):
+    """
+    Prepare trajectory-related inputs for future risk analysis.
+
+    This prototype does not calculate trajectory risk yet.
+    It only validates the trajectory inputs so a future
+    risk model can use them safely.
+    """
+
+    if speed_knots is not None and speed_knots < 0:
+        raise ValueError("Speed cannot be negative.")
+
+    if heading_degrees is not None and not 0 <= heading_degrees <= 360:
+        raise ValueError("Heading must be between 0 and 360 degrees.")
+
+    return {
+        "speed_knots": speed_knots,
+        "heading_degrees": heading_degrees,
+        "trajectory_risk": None
+    }
+    
 def get_risk_explanation(distance_km, sea_ice_concentration):
     """
     Provide a clear explanation for the overall risk.
