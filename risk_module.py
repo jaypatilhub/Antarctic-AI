@@ -91,8 +91,32 @@ def calculate_risk_from_data(distance_km, sea_ice_concentration):
         distance_km,
         sea_ice_condition
     )
+    
+def get_risk_explanation(distance_km, sea_ice_concentration):
+    """
+    Provide a clear explanation for the overall risk.
+    Prototype rule-based explanation.
+    """
+
+    overall_risk = calculate_risk_from_data(
+        distance_km,
+        sea_ice_concentration
+    )
+
+    distance_risk = calculate_risk(distance_km)
+
+    sea_ice_condition = classify_sea_ice_concentration(
+        sea_ice_concentration
+    )
+
+    return (
+        f"Risk: {overall_risk}. "
+        f"Iceberg distance risk: {distance_risk}. "
+        f"Sea-ice condition: {sea_ice_condition} "
+        f"({sea_ice_concentration}%)."
+    )
             
-        
+    
 def get_risk_reason(distance_km):
     """
     Give a clear explanation for the calculated risk.
