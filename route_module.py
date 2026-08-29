@@ -22,7 +22,30 @@ def calculate_route_risk(distance_km, ice_risk):
 
     else:
         return "SAFE"
+    
+def calculate_fuel(distance_km, fuel_per_km, fuel_cost_per_liter):
+    """
+    Estimates fuel usage and fuel cost for a route.
 
+    This is a simple prototype estimate,
+    not a real scientific vessel fuel model.
+    """
+
+    if distance_km < 0 or fuel_per_km <= 0 or fuel_cost_per_liter < 0:
+        return {
+            "status": "INVALID",
+            "estimated_fuel_liters": 0,
+            "estimated_fuel_cost": 0
+        }
+
+    estimated_fuel = distance_km * fuel_per_km
+    estimated_cost = estimated_fuel * fuel_cost_per_liter
+
+    return {
+        "status": "VALID",
+        "estimated_fuel_liters": round(estimated_fuel, 2),
+        "estimated_fuel_cost": round(estimated_cost, 2)
+    }
 
 def recommend_route(distance_km, ice_risk):
     """
