@@ -1,6 +1,8 @@
 import streamlit as st
-import folium
-from streamlit_folium import st_folium
+import streamlit.components.v1 as components
+
+from map_module import create_antarctic_map
+
 
 st.set_page_config(
     page_title="Antarctic AI Navigation",
@@ -17,18 +19,17 @@ st.write(
 
 st.success("System Online")
 
-m = folium.Map(location=[-75, 0], zoom_start=3)
-folium.Marker([-75, 0], popup="Sample Iceberg").add_to(m)
-st.write("Iceberg marker added")
-folium.Marker(
-    [-75, 0],
-    popup="Antarctic Research Point"
-).add_to(m)
 
-folium.Circle(
-    location=[-72, 20],
-    radius=500000,
-    popup="AI Risk Zone"
-).add_to(m)
+# =========================================================
+# ANTARCTIC MAP
+# =========================================================
 
-st_folium(m, width=900, height=600)
+m = create_antarctic_map()
+
+map_html = m.get_root().render()
+
+components.html(
+    map_html,
+    height=600,
+    scrolling=False
+)
