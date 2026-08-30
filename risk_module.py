@@ -157,6 +157,45 @@ def get_risk_reason(distance_km):
 
     else:
         return "LOW: Vessel is at a relatively safe distance from an iceberg."
+    
+    
+def calculate_risk_score(distance_km, sea_ice_concentration):
+    """
+    Calculate a numeric risk score from iceberg distance
+    and sea-ice concentration.
+
+    Higher score = higher risk.
+    Prototype rule-based scoring.
+    """
+
+    if distance_km < 0:
+        raise ValueError("Distance cannot be negative.")
+
+    if sea_ice_concentration < 0 or sea_ice_concentration > 100:
+        raise ValueError(
+            "Sea-ice concentration must be between 0 and 100."
+        )
+
+    distance_score = {
+        "CRITICAL": 100,
+        "HIGH": 75,
+        "MEDIUM": 50,
+        "LOW": 25
+    }
+
+    distance_risk = calculate_risk(distance_km)
+
+    # Sea-ice contributes up to 100 points.
+    sea_ice_score = sea_ice_concentration
+
+    # Weighted multi-factor score.
+    final_score = (
+        0.6 * distance_score[distance_risk]
+        + 0.4 * sea_ice_score
+    )
+
+    return round(final_score, 2)
+
 
 if __name__ == "__main__":
     test_distances = [3, 10, 20, 50]
@@ -168,3 +207,118 @@ if __name__ == "__main__":
         print(f"Distance: {distance} km → Risk: {risk}")
         print(f"Reason: {reason}")
         print()
+        
+def calculate_environmental_risk(wind_speed_knots, wave_height_m):
+    """
+    Calculate environmental risk from wind speed and wave height.
+    Prototype rule-based logic.
+    """
+
+    if wind_speed_knots < 0:
+        raise ValueError("Wind speed cannot be negative.")
+
+    if wave_height_m < 0:
+        raise ValueError("Wave height cannot be negative.")
+
+    if wind_speed_knots >= 40 or wave_height_m >= 6:
+        return "CRITICAL"
+
+    elif wind_speed_knots >= 30 or wave_height_m >= 4:
+        return "HIGH"
+
+    elif wind_speed_knots >= 20 or wave_height_m >= 2:
+        return "MEDIUM"
+
+    else:
+        return "LOW"
+    
+def assess_future_risk(current_risk, expected_wind_speed_knots=None,
+                       expected_wave_height_m=None):
+    """
+    Assess future risk using the current risk level and
+    expected environmental conditions.
+
+    Prototype rule-based future-risk assessment.
+    """
+
+    valid_risks = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+
+    current_risk = current_risk.strip().upper()
+
+    if current_risk not in valid_risks:
+        raise ValueError(
+            "Current risk must be LOW, MEDIUM, HIGH, or CRITICAL."
+        )
+
+    if expected_wind_speed_knots is not None and expected_wind_speed_knots < 0:
+        raise ValueError("Expected wind speed cannot be negative.")
+
+    if expected_wave_height_m is not None and expected_wave_height_m < 0:
+        raise ValueError("Expected wave height cannot be negative.")
+
+    future_risk = current_risk
+
+    if (expected_wind_speed_knots is not None and
+            expected_wave_height_m is not None):
+
+        environmental_risk = calculate_environmental_risk(
+            expected_wind_speed_knots,
+            expected_wave_height_m
+        )
+
+        risk_levels = {
+            "LOW": 1,
+            "MEDIUM": 2,
+            "HIGH": 3,
+            "CRITICAL": 4
+        }
+
+        if risk_levels[environmental_risk] > risk_levels[future_risk]:
+            future_risk = environmental_risk
+
+    return future_risk
+
+def calculate_multifactor_risk(
+    distance_km,
+    sea_ice_concentration,
+    wind_speed_knots,
+    wave_height_m
+):
+    """
+    Calculate overall risk using multiple environmental factors.
+    Prototype rule-based multi-factor risk.
+    """
+
+    risk_score = calculate_risk_score(
+        distance_km,
+        sea_ice_concentration
+    )
+
+    environmental_risk = calculate_environmental_risk(
+        wind_speed_knots,
+        wave_height_m
+    )
+
+    risk_levels = {
+        "LOW": 1,
+        "MEDIUM": 2,
+        "HIGH": 3,
+        "CRITICAL": 4
+    }
+
+    if environmental_risk == "CRITICAL":
+        risk_level = "CRITICAL"
+    elif environmental_risk == "HIGH":
+        risk_level = "HIGH"
+    elif risk_score >= 70:
+        risk_level = "HIGH"
+    elif risk_score >= 40:
+        risk_level = "MEDIUM"
+    else:
+        risk_level = "LOW"
+
+    return {
+        "risk_level": risk_level,
+        "risk_score": risk_score,
+        "environmental_risk": environmental_risk
+    }
