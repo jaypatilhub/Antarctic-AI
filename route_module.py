@@ -480,7 +480,8 @@ def recommend_best_route(routes):
         "recommended_route": safe_routes[0],
         "all_routes": ranked_routes,
         "status": "SAFE_ROUTE_FOUND",
-        "message": "Safest available route selected."
+        "message": "Safest available route selected.",
+        "reason": f"Route {safe_routes[0]['name']} selected because it has the lowest risk level ({safe_routes[0]['risk_level']})."
     }
 def compare_safety_and_fuel(route):
     """
@@ -507,9 +508,5 @@ def compare_safety_and_fuel(route):
         "safety_priority": safety_priority,
         "fuel_priority": fuel_priority
     }
-    def replan_routes(routes):
-    """
-    Re-rank routes when risk or fuel conditions change.
-    """
-
-    return recommend_best_route(routes)
+def replan_routes(routes):
+ return recommend_best_route(routes)
