@@ -11,7 +11,7 @@ def calculate_route_risk(distance_km, ice_risk):
     if distance_km < 0:
         return "INVALID"
 
-    if ice_risk not in ["LOW", "MEDIUM", "HIGH"]:
+    if ice_risk not in ["LOW", "MEDIUM", "HIGH", "CRITICAL"]:
         return "INVALID"
 
     if distance_km < 5 or ice_risk == "HIGH":
