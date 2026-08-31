@@ -354,3 +354,162 @@ if __name__ == "__main__":
             f"Recommendation: {result['recommendation']} | "
             f"Reason: {result['reason']}"
         )
+def calculate_route_score(distance_km, fuel_cost, risk_level):
+    """
+    Calculate a simple explainable route score.
+
+    Lower score = better route.
+    Distance and fuel increase the score.
+    Higher risk adds a larger penalty.
+    """
+
+    if distance_km < 0:
+        raise ValueError("Distance cannot be negative.")
+
+    if fuel_cost < 0:
+        raise ValueError("Fuel cost cannot be negative.")
+
+    risk_level = risk_level.strip().upper()
+
+    risk_penalty = {
+        "LOW": 0,
+        "MEDIUM": 20,
+        "HIGH": 50,
+        "CRITICAL": 100
+    }
+
+    if risk_level not in risk_penalty:
+        raise ValueError(
+            "Risk level must be LOW, MEDIUM, HIGH, or CRITICAL."
+        )
+
+    return distance_km + fuel_cost + risk_penalty[risk_level]
+
+def rank_routes(routes):
+    """
+    Rank candidate routes from best to worst.
+
+    Lower route score = better route.
+    """
+
+    if not routes:
+        raise ValueError("At least one route is required.")
+
+    ranked_routes = []
+
+    for route in routes:
+        score = calculate_route_score(
+            route["distance_km"],
+            route["fuel_cost"],
+            route["risk_level"]
+        )
+
+        ranked_routes.append({
+            "name": route["name"],
+            "distance_km": route["distance_km"],
+            "fuel_cost": route["fuel_cost"],
+            "risk_level": route["risk_level"],
+            "score": score
+        })
+
+    ranked_routes.sort(key=lambda route: route["score"])
+
+    return ranked_routes
+
+def recommend_best_route(routes):
+    """
+    Select the safest route first.
+    Fuel cost is considered only when routes have the same risk level.
+    """
+
+    if not routes:
+        raise ValueError("At least one route is required.")
+
+    risk_priority = {
+        "LOW": 1,
+        "MEDIUM": 2,
+        "HIGH": 3,
+        "CRITICAL": 4
+    }
+
+    ranked_routes = []
+
+    for route in routes:
+        risk_level = route["risk_level"].strip().upper()
+
+        if risk_level not in risk_priority:
+            raise ValueError(
+                "Risk level must be LOW, MEDIUM, HIGH, or CRITICAL."
+            )
+
+        score = calculate_route_score(
+            route["distance_km"],
+            route["fuel_cost"],
+            risk_level
+        )
+
+        ranked_routes.append({
+            "name": route["name"],
+            "distance_km": route["distance_km"],
+            "fuel_cost": route["fuel_cost"],
+            "risk_level": risk_level,
+            "score": score
+        })
+
+    ranked_routes.sort(
+        key=lambda route: (
+            risk_priority[route["risk_level"]],
+            route["fuel_cost"]
+        )
+    )
+
+    safe_routes = [
+        route for route in ranked_routes
+        if route["risk_level"] == "LOW"
+    ]
+
+    if not safe_routes:
+        return {
+            "recommended_route": None,
+            "all_routes": ranked_routes,
+            "status": "NO_SAFE_ROUTE",
+            "message": "No safe route available. Search for an alternative route."
+        }
+
+    return {
+        "recommended_route": safe_routes[0],
+        "all_routes": ranked_routes,
+        "status": "SAFE_ROUTE_FOUND",
+        "message": "Safest available route selected."
+    }
+def compare_safety_and_fuel(route):
+    """
+    Explain the trade-off between route safety and fuel usage.
+    """
+
+    risk_level = route["risk_level"].strip().upper()
+    fuel_cost = route["fuel_cost"]
+
+    if risk_level in ["HIGH", "CRITICAL"]:
+        safety_priority = "HIGH"
+    elif risk_level == "MEDIUM":
+        safety_priority = "MEDIUM"
+    else:
+        safety_priority = "LOW"
+
+    if fuel_cost <= 20:
+        fuel_priority = "FUEL-EFFICIENT"
+    else:
+        fuel_priority = "FUEL-COSTLY"
+
+    return {
+        "route": route["name"],
+        "safety_priority": safety_priority,
+        "fuel_priority": fuel_priority
+    }
+    def replan_routes(routes):
+    """
+    Re-rank routes when risk or fuel conditions change.
+    """
+
+    return recommend_best_route(routes)
