@@ -1,3 +1,4 @@
+
 import streamlit as st
 from streamlit_folium import st_folium
 from math import radians, sin, cos, sqrt, atan2
@@ -5,7 +6,14 @@ from math import radians, sin, cos, sqrt, atan2
 from data_module import load_data, validate_data, clean_data, preprocess_data
 from risk_module import calculate_risk_from_data, get_risk_reason
 from map_module import create_antarctic_map
-from route_module import recommend_route
+from route_module import (
+    recommend_route,
+    calculate_fuel,
+    compare_safety_fuel,
+    rank_routes,
+    replan_route,
+    recommend_best_route
+)
 
 
 # =========================================================
@@ -61,6 +69,52 @@ st.success("🟢 System Online")
 
 
 # =========================================================
+# NAVIGATION POINTS
+# =========================================================
+
+st.subheader("🚢 Navigation Points")
+
+locations = {
+    "McMurdo Station": (-77.8481, 166.6681),
+    "Palmer Station": (-64.7798, -64.0553),
+    "Rothera Research Station": (-67.5689, -68.1248),
+    "Amundsen-Scott South Pole Station": (-90.0000, 0.0000),
+    "Casey Station": (-66.2817, 110.5275),
+    "Davis Station": (-68.5767, 77.9672),
+    "Mawson Station": (-67.6028, 62.8744),
+    "Halley Research Station": (-75.5682, -25.5085)
+}
+
+col1, col2 = st.columns(2)
+
+with col1:
+    start_location = st.selectbox(
+        "Starting Point",
+        list(locations.keys()),
+        key="top_start_location"
+    )
+
+with col2:
+    end_location = st.selectbox(
+        "Destination",
+        list(locations.keys()),
+        index=1,
+        key="top_end_location"
+    )
+
+start_lat, start_lon = locations[start_location]
+end_lat, end_lon = locations[end_location]
+
+st.info(
+    f"Starting Point: {start_location} | "
+    f"Destination: {end_location}"
+)
+
+ship_lat = start_lat
+ship_lon = start_lon
+
+
+# =========================================================
 # LOAD AND PROCESS DATA
 # =========================================================
 
@@ -87,7 +141,10 @@ st.subheader("📊 Antarctic Data")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric("Icebergs Detected", len(df))
+    st.metric(
+        "Icebergs Detected",
+        len(df)
+    )
 
 with col2:
     st.metric(
@@ -108,45 +165,30 @@ st.dataframe(
 
 
 # =========================================================
-# VESSEL POSITION
+# FUEL PARAMETERS
 # =========================================================
 
-st.subheader("🚢 Navigation Points")
+st.subheader("⛽ Fuel Parameters")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    start_lat = st.number_input(
-        "Start Latitude",
-        value=-70.0,
-        min_value=-90.0,
-        max_value=90.0
-    )
-
-    start_lon = st.number_input(
-        "Start Longitude",
-        value=20.0,
-        min_value=-180.0,
-        max_value=180.0
+    fuel_per_km = st.number_input(
+        "Fuel Consumption (L/km)",
+        min_value=0.1,
+        value=2.0,
+        step=0.1
     )
 
 with col2:
-    end_lat = st.number_input(
-        "End Latitude",
-        value=-68.0,
-        min_value=-90.0,
-        max_value=90.0
+    fuel_cost_per_liter = st.number_input(
+        "Fuel Cost (per Liter)",
+        min_value=0.0,
+        value=100.0,
+        step=1.0
     )
 
-    end_lon = st.number_input(
-        "End Longitude",
-        value=30.0,
-        min_value=-180.0,
-        max_value=180.0
-    )
 
-ship_lat = start_lat
-ship_lon = start_lon
 # =========================================================
 # ROUTE DISTANCE
 # =========================================================
@@ -162,6 +204,8 @@ st.metric(
     "Start → End Distance",
     f"{route_distance:.2f} km"
 )
+
+
 # =========================================================
 # CANDIDATE ROUTES
 # =========================================================
@@ -182,7 +226,9 @@ for route_name, distance in routes.items():
     st.write(
         f"**{route_name}:** {distance:.2f} km"
     )
-    # =========================================================
+
+
+# =========================================================
 # ROUTE SELECTION
 # =========================================================
 
@@ -271,10 +317,8 @@ st.info(
 
 
 # =========================================================
-# ROUTE RECOMMENDATION
+# ROUTE RISK MAPPING
 # =========================================================
-
-st.subheader("🧭 AI Route Recommendation")
 
 if risk == "CRITICAL":
     route_ice_risk = "HIGH"
@@ -286,10 +330,31 @@ else:
     route_ice_risk = "LOW"
 
 
+# =========================================================
+# AI ROUTE RECOMMENDATION
+# =========================================================
+
 route_result = recommend_route(
     nearest_distance,
     route_ice_risk
 )
+
+st.subheader("🧭 AI Route Recommendation")
+
+st.write(
+    f"**Status:** {route_result['status']}"
+)
+
+st.write(
+    f"**Recommendation:** {route_result['recommendation']}"
+)
+
+if "reason" in route_result:
+    st.write(
+        f"**Reason:** {route_result['reason']}"
+    )
+
+
 # =========================================================
 # SELECTED ROUTE RISK
 # =========================================================
@@ -310,20 +375,180 @@ st.write(
 )
 
 st.write(
-    f"**Recommendation:** {selected_route_result['recommendation']}"
+    f"**Recommendation:** "
+    f"{selected_route_result['recommendation']}"
 )
 
-st.write(
-    f"**Route Status:** {route_result['status']}"
-)
-
-st.write(
-    f"**Recommendation:** {route_result['recommendation']}"
-)
-
-if "reason" in route_result:
+if "reason" in selected_route_result:
     st.write(
-        f"**Reason:** {route_result['reason']}"
+        f"**Reason:** {selected_route_result['reason']}"
+    )
+
+
+# =========================================================
+# FUEL ESTIMATION
+# =========================================================
+
+fuel_result = calculate_fuel(
+    selected_distance,
+    fuel_per_km,
+    fuel_cost_per_liter
+)
+
+st.subheader("⛽ Selected Route Fuel Estimate")
+
+st.write(
+    f"**Estimated Fuel:** "
+    f"{fuel_result['estimated_fuel_liters']:.2f} L"
+)
+
+st.write(
+    f"**Estimated Fuel Cost:** "
+    f"{fuel_result['estimated_fuel_cost']:.2f}"
+)
+
+
+# =========================================================
+# SAFETY VS FUEL COMPARISON
+# =========================================================
+
+route_a = {
+    "distance_km": route_a_distance,
+    "ice_risk": route_ice_risk
+}
+
+route_b = {
+    "distance_km": route_b_distance,
+    "ice_risk": route_ice_risk
+}
+
+comparison = compare_safety_fuel(
+    route_a,
+    route_b,
+    fuel_per_km,
+    fuel_cost_per_liter
+)
+
+st.subheader("⚖️ Safety vs Fuel Comparison")
+
+st.write(
+    f"**Route A:** {comparison['route_a_risk']} | "
+    f"{comparison['route_a_fuel_liters']:.2f} L"
+)
+
+st.write(
+    f"**Route B:** {comparison['route_b_risk']} | "
+    f"{comparison['route_b_fuel_liters']:.2f} L"
+)
+
+st.success(
+    f"Recommended: {comparison['recommended_route']}"
+)
+
+
+# =========================================================
+# ROUTE RANKING
+# =========================================================
+
+candidate_routes = [
+    {
+        "name": "Route A",
+        "distance_km": route_a_distance,
+        "ice_risk": route_ice_risk
+    },
+    {
+        "name": "Route B",
+        "distance_km": route_b_distance,
+        "ice_risk": route_ice_risk
+    },
+    {
+        "name": "Route C",
+        "distance_km": route_c_distance,
+        "ice_risk": route_ice_risk
+    }
+]
+
+ranked_routes = rank_routes(
+    candidate_routes,
+    fuel_per_km,
+    fuel_cost_per_liter
+)
+
+st.subheader("🏆 Route Ranking")
+
+for route in ranked_routes:
+    st.write(
+        f"**{route['name']}** | "
+        f"Risk: {route['risk']} | "
+        f"Fuel: {route['fuel_liters']:.2f} L | "
+        f"Cost: {route['fuel_cost']:.2f}"
+    )
+
+
+# =========================================================
+# BEST ROUTE RECOMMENDATION
+# =========================================================
+
+best_route_result = recommend_best_route(
+    candidate_routes
+)
+
+st.subheader("🧭 Best Route Recommendation")
+
+st.write(
+    f"**Status:** {best_route_result['status']}"
+)
+
+st.write(
+    f"**Recommendation:** "
+    f"{best_route_result['recommendation']}"
+)
+
+if best_route_result.get("route"):
+    st.success(
+        f"Selected Best Route: "
+        f"{best_route_result['route']['name']} | "
+        f"{best_route_result['route']['distance_km']:.2f} km"
+    )
+
+
+# =========================================================
+# DYNAMIC RE-ROUTING
+# =========================================================
+
+current_route = {
+    "name": selected_route,
+    "distance_km": selected_distance,
+    "ice_risk": route_ice_risk
+}
+
+alternative_routes = [
+    route
+    for route in candidate_routes
+    if route["name"] != selected_route
+]
+
+replan_result = replan_route(
+    current_route,
+    alternative_routes
+)
+
+st.subheader("🔄 Dynamic Re-Routing")
+
+st.write(
+    f"**Status:** {replan_result['status']}"
+)
+
+st.write(
+    f"**Recommendation:** "
+    f"{replan_result['recommendation']}"
+)
+
+if replan_result.get("route"):
+    st.success(
+        f"Alternative Route: "
+        f"{replan_result['route']['name']} | "
+        f"{replan_result['route']['distance_km']:.2f} km"
     )
 
 
@@ -358,4 +583,4 @@ st.write("✅ M2 — Antarctic Map Module")
 st.write("✅ M3 — Data Processing Module")
 st.write("✅ M4 — Risk Analysis Module")
 st.write("✅ M5 — Route Recommendation Module")
-st.write("🚀 M1 — Main Application Integration") 
+st.write("🚀 M1 — Main Application Integration")
