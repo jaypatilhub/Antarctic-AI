@@ -139,6 +139,9 @@ def create_antarctic_map():
         <div>🟢 Low Ice</div>
         <div>🟡 Medium Ice</div>
         <div>🔴 Heavy Ice</div>
+        <div>🔴 Route A — HIGH RISK</div>
+        <div>🟡 Route B — MEDIUM RISK</div>
+        <div>🟢 Route C — LOW RISK</div>
         <div>⚠️ AI Risk Zone</div>
         <div>🏁 Destination</div>
 
@@ -161,7 +164,7 @@ def create_antarctic_map():
             width:35px;
             height:35px;
         ">
-            🚢
+            ⛴
         </div>
         """
     )
@@ -414,6 +417,35 @@ def create_antarctic_map():
         fill_color="#ff0033",
         fill_opacity=0.12
     ).add_to(map_obj)
+    # =========================================================
+    # START LOCATION
+    # =========================================================
+
+    start_icon = folium.DivIcon(
+        html="""
+        <div style="
+            font-size:28px;
+            text-align:center;
+            width:40px;
+            height:40px;
+            filter: drop-shadow(0 0 8px #00eaff);
+        ">
+            📍
+        </div>
+        """
+    )
+
+    folium.Marker(
+        location=[-70, 20],
+        popup="""
+        <b>START LOCATION</b><br>
+        Our Vessel Starting Point<br>
+        Latitude: -70°<br>
+        Longitude: 20°
+        """,
+        tooltip="START",
+        icon=start_icon
+    ).add_to(map_obj)
 
     # =========================================================
     # DESTINATION
@@ -442,6 +474,57 @@ def create_antarctic_map():
         """,
         tooltip="🏁 DESTINATION",
         icon=destination_icon
+    ).add_to(map_obj)
+    # =========================================================
+    # ROUTE A — HIGH RISK
+    # =========================================================
+
+    folium.PolyLine(
+        locations=[
+            [-70, 20],
+            [-69.5, 21],
+            [-69, 23],
+            [-68.5, 26],
+            [-68, 30]
+        ],
+        color="#ff2222",
+        weight=5,
+        opacity=0.85,
+        tooltip="Route A — HIGH RISK"
+    ).add_to(map_obj)
+    # =========================================================
+    # ROUTE B — MEDIUM RISK
+    # =========================================================
+
+    folium.PolyLine(
+        locations=[
+            [-70, 20],
+            [-69.8, 22],
+            [-69.5, 24],
+            [-69, 27],
+            [-68, 30]
+        ],
+        color="#ffaa00",
+        weight=5,
+        opacity=0.85,
+        tooltip="Route B — MEDIUM RISK"
+    ).add_to(map_obj)
+    # =========================================================
+    # ROUTE C — LOW RISK
+    # =========================================================
+
+    folium.PolyLine(
+        locations=[
+            [-70, 20],
+            [-70.2, 21.5],
+            [-69.8, 24],
+            [-69, 27],
+            [-68, 30]
+        ],
+        color="#00cc55",
+        weight=5,
+        opacity=0.85,
+        tooltip="Route C — LOW RISK"
     ).add_to(map_obj)
 
     # =========================================================
