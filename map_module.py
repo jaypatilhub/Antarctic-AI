@@ -499,7 +499,7 @@ def create_antarctic_map():
         weight=5,
         opacity=0.85,
         tooltip="Route A — HIGH RISK"
-    ).add_to(map_obj)
+    ).add_to(route_layer)
     # =========================================================
     # ROUTE B — MEDIUM RISK
     # =========================================================
