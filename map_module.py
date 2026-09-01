@@ -576,10 +576,10 @@ def create_antarctic_map():
     # =========================================================
 
     folium.Marker(
-        location=[-71, 25],
+        location=[-69, 23],
         popup="""
         <b>🧊 ICEBERG 01</b><br>
-        Location: -71°, 25°<br>
+        Location: -69°, 23°<br>
         Size: Large<br>
         Movement: South-East<br>
         Risk: <b style="color:red;">HIGH</b>
@@ -590,7 +590,7 @@ def create_antarctic_map():
 
     folium.PolyLine(
         locations=[
-            [-71, 25],
+            [-69, 23],
             [-70.5, 26],
             [-70, 27]
         ],
