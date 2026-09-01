@@ -476,6 +476,14 @@ def create_antarctic_map():
         icon=destination_icon
     ).add_to(map_obj)
     # =========================================================
+# =========================================================
+    # ROUTE SELECTION
+    # =========================================================
+
+    route_layer = folium.FeatureGroup(name="🗺️ Routes")
+    route_layer.add_to(map_obj)
+
+    # =========================================================
     # ROUTE A — HIGH RISK
     # =========================================================
 
@@ -508,7 +516,7 @@ def create_antarctic_map():
         weight=5,
         opacity=0.85,
         tooltip="Route B — MEDIUM RISK"
-    ).add_to(map_obj)
+    ).add_to(route_layer)
     # =========================================================
     # ROUTE C — LOW RISK
     # =========================================================
@@ -525,7 +533,7 @@ def create_antarctic_map():
         weight=5,
         opacity=0.85,
         tooltip="Route C — LOW RISK"
-    ).add_to(map_obj)
+    ).add_to(route_layer)
 
     # =========================================================
     # AI RECOMMENDED ROUTE
@@ -692,5 +700,12 @@ def create_antarctic_map():
     map_obj.get_root().html.add_child(
         folium.Element(status_bar)
     )
+# =========================================================
+    # ROUTE SELECTION CONTROL
+    # =========================================================
+
+    folium.LayerControl(
+        collapsed=False
+    ).add_to(map_obj)
 
     return map_obj
