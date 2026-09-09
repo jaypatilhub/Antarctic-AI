@@ -797,28 +797,57 @@ except Exception as e:
 
 
 # =========================================================
-# ANTARCTIC MAP
+# ANTARCTIC MAP + DIRECTIONS
 # =========================================================
 
-st.subheader(
-    "🌍 Antarctic AI Monitoring Map"
+st.subheader("🌍 Antarctic AI Monitoring Map")
+
+if "directions_mode" not in st.session_state:
+    st.session_state.directions_mode = False
+
+st.info(
+    f"Route Preview: {start_location} → {end_location} | "
+    f"Selected: {selected_route}"
 )
 
+if st.button(
+    "🧭 Directions — Open Large Navigation Map",
+    use_container_width=True
+):
+    st.session_state.directions_mode = True
+
 try:
-
-    antarctic_map = create_antarctic_map()
-
-    st_folium(
-        antarctic_map,
-        width=1200,
-        height=650
+    antarctic_map = create_antarctic_map(
+        start_name=start_location,
+        start_coords=(start_lat, start_lon),
+        destination_name=end_location,
+        destination_coords=(end_lat, end_lon),
     )
+
+    if st.session_state.directions_mode:
+        st.subheader("🧭 Navigation Directions View")
+
+        if st.button("← Back to Normal Map View"):
+            st.session_state.directions_mode = False
+            st.rerun()
+
+        st_folium(
+            antarctic_map,
+            width=1500,
+            height=850,
+            key="large_navigation_map"
+        )
+
+    else:
+        st_folium(
+            antarctic_map,
+            width=1200,
+            height=650,
+            key="normal_navigation_map"
+        )
 
 except Exception as e:
-
-    st.error(
-        f"Map loading error: {e}"
-    )
+    st.error(f"Map loading error: {e}")
 
 
 # =========================================================

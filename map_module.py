@@ -1,15 +1,21 @@
 import folium
 
 
-def create_antarctic_map():
+def create_antarctic_map(
+    start_name="Our Research Ship",
+    start_coords=(-70, 20),
+    destination_name="Antarctic Research Station",
+    destination_coords=(-68, 30),
+):
+    start_lat, start_lon = start_coords
+    destination_lat, destination_lon = destination_coords
 
-    # =========================================================
-    # GLOBAL WORLD MAP
-    # =========================================================
+    start_point = [start_lat, start_lon]
+    destination_point = [destination_lat, destination_lon]
 
     map_obj = folium.Map(
-        location=[20, 0],
-        zoom_start=2,
+        location=start_point,
+        zoom_start=3,
         min_zoom=2,
         max_zoom=8,
         tiles="OpenStreetMap"
@@ -41,9 +47,7 @@ def create_antarctic_map():
     </div>
     """
 
-    map_obj.get_root().html.add_child(
-        folium.Element(title_html)
-    )
+    map_obj.get_root().html.add_child(folium.Element(title_html))
 
     # =========================================================
     # LEFT PANEL
@@ -64,7 +68,6 @@ def create_antarctic_map():
         font-family: Arial;
         box-shadow: 0 0 12px rgba(0,234,255,0.5);
     ">
-
         <div style="
             color:#00eaff;
             font-size:17px;
@@ -96,13 +99,10 @@ def create_antarctic_map():
 
         <div>Icebergs: 03</div>
         <div>Risk Zone: ACTIVE</div>
-
     </div>
     """
 
-    map_obj.get_root().html.add_child(
-        folium.Element(info_panel)
-    )
+    map_obj.get_root().html.add_child(folium.Element(info_panel))
 
     # =========================================================
     # RIGHT LEGEND
@@ -123,7 +123,6 @@ def create_antarctic_map():
         font-family: Arial;
         box-shadow: 0 0 12px rgba(0,234,255,0.5);
     ">
-
         <div style="
             color:#00eaff;
             font-size:17px;
@@ -144,13 +143,10 @@ def create_antarctic_map():
         <div>🟢 Route C — LOW RISK</div>
         <div>⚠️ AI Risk Zone</div>
         <div>🏁 Destination</div>
-
     </div>
     """
 
-    map_obj.get_root().html.add_child(
-        folium.Element(legend_html)
-    )
+    map_obj.get_root().html.add_child(folium.Element(legend_html))
 
     # =========================================================
     # GLOBAL DEMO SHIPS
@@ -170,7 +166,6 @@ def create_antarctic_map():
     )
 
     vessels = [
-
         {
             "name": "Ocean Pioneer",
             "type": "Research Vessel",
@@ -181,7 +176,6 @@ def create_antarctic_map():
             "destination": "Cape Town",
             "status": "Active"
         },
-
         {
             "name": "Polar Explorer",
             "type": "Research Vessel",
@@ -192,7 +186,6 @@ def create_antarctic_map():
             "destination": "Antarctica",
             "status": "Active"
         },
-
         {
             "name": "Southern Star",
             "type": "Cargo Vessel",
@@ -203,7 +196,6 @@ def create_antarctic_map():
             "destination": "Hobart",
             "status": "Active"
         },
-
         {
             "name": "Atlantic Voyager",
             "type": "Supply Vessel",
@@ -214,7 +206,6 @@ def create_antarctic_map():
             "destination": "South America",
             "status": "Active"
         },
-
         {
             "name": "Ice Navigator",
             "type": "Ice Research Vessel",
@@ -225,14 +216,11 @@ def create_antarctic_map():
             "destination": "Antarctica",
             "status": "Active"
         }
-
     ]
 
     for vessel in vessels:
-
         popup_html = f"""
         <div style="font-family:Arial; width:230px;">
-
             <h4 style="color:#0088aa;">
                 🚢 {vessel["name"]}
             </h4>
@@ -244,22 +232,18 @@ def create_antarctic_map():
             <b>Heading:</b> {vessel["heading"]}<br>
             <b>Destination:</b> {vessel["destination"]}<br>
             <b>AIS Status:</b> 🟢 {vessel["status"]}
-
         </div>
         """
 
         folium.Marker(
             location=[vessel["lat"], vessel["lon"]],
-            popup=folium.Popup(
-                popup_html,
-                max_width=300
-            ),
+            popup=folium.Popup(popup_html, max_width=300),
             tooltip=f'🚢 {vessel["name"]}',
             icon=vessel_icon
         ).add_to(map_obj)
 
     # =========================================================
-    # OUR RESEARCH SHIP
+    # OUR RESEARCH SHIP — SELECTED START POINT
     # =========================================================
 
     ship_icon = folium.DivIcon(
@@ -277,25 +261,21 @@ def create_antarctic_map():
     )
 
     folium.Marker(
-        location=[-70, 20],
-        popup="""
+        location=start_point,
+        popup=f"""
         <div style="font-family:Arial; width:230px;">
-
             <h4 style="color:#0088aa;">
                 🚢 OUR RESEARCH SHIP
             </h4>
 
-            <b>Latitude:</b> -70°<br>
-            <b>Longitude:</b> 20°<br>
-            <b>Speed:</b> 12.0 knots<br>
-            <b>Heading:</b> 074°<br>
-            <b>Destination:</b> Antarctic Research Station<br>
-            <b>Status:</b> 🟢 ACTIVE<br>
-            <b>AI Risk:</b> 🔴 HIGH
-
+            <b>Start Point:</b> {start_name}<br>
+            <b>Latitude:</b> {start_lat:.4f}°<br>
+            <b>Longitude:</b> {start_lon:.4f}°<br>
+            <b>Destination:</b> {destination_name}<br>
+            <b>Status:</b> 🟢 ACTIVE
         </div>
         """,
-        tooltip="🚢 OUR RESEARCH SHIP",
+        tooltip=f"🚢 START: {start_name}",
         icon=ship_icon
     ).add_to(map_obj)
 
@@ -303,44 +283,23 @@ def create_antarctic_map():
     # AI MONITORING RANGE
     # =========================================================
 
-    radar_center = [-70, 20]
-
-    folium.Circle(
-        location=radar_center,
-        radius=150000,
-        color="#00eaff",
-        weight=2,
-        fill=False,
-        tooltip="🛰️ AI Monitoring Range"
-    ).add_to(map_obj)
-
-    folium.Circle(
-        location=radar_center,
-        radius=300000,
-        color="#00eaff",
-        weight=1,
-        fill=False
-    ).add_to(map_obj)
-
-    folium.Circle(
-        location=radar_center,
-        radius=450000,
-        color="#00eaff",
-        weight=1,
-        fill=False
-    ).add_to(map_obj)
+    for radius, weight in [(150000, 2), (300000, 1), (450000, 1)]:
+        folium.Circle(
+            location=start_point,
+            radius=radius,
+            color="#00eaff",
+            weight=weight,
+            fill=False,
+            tooltip="🛰️ AI Monitoring Range" if radius == 150000 else None
+        ).add_to(map_obj)
 
     # =========================================================
-    # LOW ICE
+    # EXISTING SEA-ICE ZONES
     # =========================================================
 
     low_ice_zone = [
-        [-66, 5],
-        [-65, 18],
-        [-67, 28],
-        [-69, 30],
-        [-70, 18],
-        [-69, 7]
+        [-66, 5], [-65, 18], [-67, 28],
+        [-69, 30], [-70, 18], [-69, 7]
     ]
 
     folium.Polygon(
@@ -354,17 +313,9 @@ def create_antarctic_map():
         fill_opacity=0.20
     ).add_to(map_obj)
 
-    # =========================================================
-    # MEDIUM ICE
-    # =========================================================
-
     medium_ice_zone = [
-        [-70, 5],
-        [-69, 18],
-        [-71, 32],
-        [-74, 35],
-        [-75, 25],
-        [-74, 10]
+        [-70, 5], [-69, 18], [-71, 32],
+        [-74, 35], [-75, 25], [-74, 10]
     ]
 
     folium.Polygon(
@@ -378,17 +329,9 @@ def create_antarctic_map():
         fill_opacity=0.25
     ).add_to(map_obj)
 
-    # =========================================================
-    # HEAVY ICE
-    # =========================================================
-
     heavy_ice_zone = [
-        [-74, 10],
-        [-73, 25],
-        [-75, 35],
-        [-78, 30],
-        [-79, 15],
-        [-77, 5]
+        [-74, 10], [-73, 25], [-75, 35],
+        [-78, 30], [-79, 15], [-77, 5]
     ]
 
     folium.Polygon(
@@ -402,10 +345,6 @@ def create_antarctic_map():
         fill_opacity=0.30
     ).add_to(map_obj)
 
-    # =========================================================
-    # AI RISK ZONE
-    # =========================================================
-
     folium.Circle(
         location=[-72, 20],
         radius=500000,
@@ -417,8 +356,9 @@ def create_antarctic_map():
         fill_color="#ff0033",
         fill_opacity=0.12
     ).add_to(map_obj)
+
     # =========================================================
-    # START LOCATION
+    # SELECTED START MARKER
     # =========================================================
 
     start_icon = folium.DivIcon(
@@ -436,19 +376,19 @@ def create_antarctic_map():
     )
 
     folium.Marker(
-        location=[-70, 20],
-        popup="""
+        location=start_point,
+        popup=f"""
         <b>START LOCATION</b><br>
-        Our Vessel Starting Point<br>
-        Latitude: -70°<br>
-        Longitude: 20°
+        {start_name}<br>
+        Latitude: {start_lat:.4f}°<br>
+        Longitude: {start_lon:.4f}°
         """,
-        tooltip="START",
+        tooltip=f"START: {start_name}",
         icon=start_icon
     ).add_to(map_obj)
 
     # =========================================================
-    # DESTINATION
+    # SELECTED DESTINATION MARKER
     # =========================================================
 
     destination_icon = folium.DivIcon(
@@ -466,87 +406,68 @@ def create_antarctic_map():
     )
 
     folium.Marker(
-        location=[-68, 30],
-        popup="""
+        location=destination_point,
+        popup=f"""
         <b>🏁 RESEARCH DESTINATION</b><br>
-        Target: Antarctic Research Station<br>
+        {destination_name}<br>
+        Latitude: {destination_lat:.4f}°<br>
+        Longitude: {destination_lon:.4f}°<br>
         Navigation Status: ACTIVE
         """,
-        tooltip="🏁 DESTINATION",
+        tooltip=f"🏁 DESTINATION: {destination_name}",
         icon=destination_icon
     ).add_to(map_obj)
+
     # =========================================================
-# =========================================================
-    # ROUTE SELECTION
+    # BASIC ROUTE PREVIEW STRUCTURE
     # =========================================================
+
+    lat_difference = destination_lat - start_lat
+    lon_difference = destination_lon - start_lon
+
+    def route_points(offset):
+        return [
+            start_point,
+            [
+                start_lat + (lat_difference * 0.33) + offset,
+                start_lon + (lon_difference * 0.33)
+            ],
+            [
+                start_lat + (lat_difference * 0.66) + offset,
+                start_lon + (lon_difference * 0.66)
+            ],
+            destination_point
+        ]
 
     route_layer = folium.FeatureGroup(name="🗺️ Routes")
     route_layer.add_to(map_obj)
 
-    # =========================================================
-    # ROUTE A — HIGH RISK
-    # =========================================================
-
     folium.PolyLine(
-        locations=[
-            [-70, 20],
-            [-69.5, 21],
-            [-69, 23],
-            [-68.5, 26],
-            [-68, 30]
-        ],
+        locations=route_points(0.7),
         color="#ff2222",
         weight=5,
         opacity=0.85,
         tooltip="Route A — HIGH RISK"
     ).add_to(route_layer)
-    # =========================================================
-    # ROUTE B — MEDIUM RISK
-    # =========================================================
 
     folium.PolyLine(
-        locations=[
-            [-70, 20],
-            [-69.8, 22],
-            [-69.5, 24],
-            [-69, 27],
-            [-68, 30]
-        ],
+        locations=route_points(0.0),
         color="#ffaa00",
         weight=5,
         opacity=0.85,
         tooltip="Route B — MEDIUM RISK"
     ).add_to(route_layer)
-    # =========================================================
-    # ROUTE C — LOW RISK
-    # =========================================================
 
     folium.PolyLine(
-        locations=[
-            [-70, 20],
-            [-70.2, 21.5],
-            [-69.8, 24],
-            [-69, 27],
-            [-68, 30]
-        ],
+        locations=route_points(-0.7),
         color="#00cc55",
         weight=5,
         opacity=0.85,
         tooltip="Route C — LOW RISK"
     ).add_to(route_layer)
 
-    # =========================================================
-    # AI RECOMMENDED ROUTE
-    # =========================================================
-
     folium.PolyLine(
-        locations=[
-            [-70, 20],
-            [-69.5, 22],
-            [-69, 24],
-            [-68.5, 27],
-            [-68, 30]
-        ],
+        locations=route_points(-0.25),
         color="#00eaff",
         weight=4,
         opacity=0.9,
@@ -555,7 +476,7 @@ def create_antarctic_map():
     ).add_to(map_obj)
 
     # =========================================================
-    # ICEBERG ICON
+    # EXISTING ICEBERG MARKERS AND MOVEMENT PATHS
     # =========================================================
 
     iceberg_icon = folium.DivIcon(
@@ -571,107 +492,77 @@ def create_antarctic_map():
         """
     )
 
-    # =========================================================
-    # ICEBERG 01
-    # =========================================================
+    icebergs = [
+        {
+            "name": "ICEBERG 01",
+            "location": [-69, 23],
+            "size": "Large",
+            "movement": "South-East",
+            "risk": "HIGH",
+            "risk_color": "red",
+            "path": [[-69, 23], [-70.5, 26], [-70, 27]],
+            "path_color": "#ff2222"
+        },
+        {
+            "name": "ICEBERG 02",
+            "location": [-73, 15],
+            "size": "Medium",
+            "movement": "East",
+            "risk": "MEDIUM",
+            "risk_color": "orange",
+            "path": [[-73, 15], [-73, 17], [-73, 19]],
+            "path_color": "#ffaa00"
+        },
+        {
+            "name": "ICEBERG 03",
+            "location": [-75, 28],
+            "size": "Large",
+            "movement": "South",
+            "risk": "HIGH",
+            "risk_color": "red",
+            "path": [[-75, 28], [-76, 28], [-77, 28]],
+            "path_color": "#ff2222"
+        }
+    ]
 
-    folium.Marker(
-        location=[-69, 23],
-        popup="""
-        <b>🧊 ICEBERG 01</b><br>
-        Location: -69°, 23°<br>
-        Size: Large<br>
-        Movement: South-East<br>
-        Risk: <b style="color:red;">HIGH</b>
-        """,
-        tooltip="🧊 ICEBERG 01 — HIGH RISK",
-        icon=iceberg_icon
-    ).add_to(map_obj)
+    for iceberg in icebergs:
+        folium.Marker(
+            location=iceberg["location"],
+            popup=f"""
+            <b>🧊 {iceberg["name"]}</b><br>
+            Location: {iceberg["location"][0]}°, {iceberg["location"][1]}°<br>
+            Size: {iceberg["size"]}<br>
+            Movement: {iceberg["movement"]}<br>
+            Risk: <b style="color:{iceberg["risk_color"]};">
+                {iceberg["risk"]}
+            </b>
+            """,
+            tooltip=f"🧊 {iceberg['name']} — {iceberg['risk']} RISK",
+            icon=iceberg_icon
+        ).add_to(map_obj)
 
-    folium.PolyLine(
-        locations=[
-            [-69, 23],
-            [-70.5, 26],
-            [-70, 27]
-        ],
-        color="#ff2222",
-        weight=4,
-        tooltip="➡️ Iceberg 01 Movement"
-    ).add_to(map_obj)
-
-    # =========================================================
-    # ICEBERG 02
-    # =========================================================
-
-    folium.Marker(
-        location=[-73, 15],
-        popup="""
-        <b>🧊 ICEBERG 02</b><br>
-        Location: -73°, 15°<br>
-        Size: Medium<br>
-        Movement: East<br>
-        Risk: <b style="color:orange;">MEDIUM</b>
-        """,
-        tooltip="🧊 ICEBERG 02 — MEDIUM RISK",
-        icon=iceberg_icon
-    ).add_to(map_obj)
-
-    folium.PolyLine(
-        locations=[
-            [-73, 15],
-            [-73, 17],
-            [-73, 19]
-        ],
-        color="#ffaa00",
-        weight=4,
-        tooltip="➡️ Iceberg 02 Movement"
-    ).add_to(map_obj)
-
-    # =========================================================
-    # ICEBERG 03
-    # =========================================================
-
-    folium.Marker(
-        location=[-75, 28],
-        popup="""
-        <b>🧊 ICEBERG 03</b><br>
-        Location: -75°, 28°<br>
-        Size: Large<br>
-        Movement: South<br>
-        Risk: <b style="color:red;">HIGH</b>
-        """,
-        tooltip="🧊 ICEBERG 03 — HIGH RISK",
-        icon=iceberg_icon
-    ).add_to(map_obj)
-
-    folium.PolyLine(
-        locations=[
-            [-75, 28],
-            [-76, 28],
-            [-77, 28]
-        ],
-        color="#ff2222",
-        weight=4,
-        tooltip="⬇️ Iceberg 03 Movement"
-    ).add_to(map_obj)
+        folium.PolyLine(
+            locations=iceberg["path"],
+            color=iceberg["path_color"],
+            weight=4,
+            tooltip=f"➡️ {iceberg['name']} Movement"
+        ).add_to(map_obj)
 
     # =========================================================
-    # GLOBAL WORLD VIEW
+    # NAVIGATION-FOCUSED MAP VIEW
     # =========================================================
-    # This forces the map to show the complete world initially.
 
-    map_obj.fit_bounds(
-        [
-            [-60, -170],
-            [80, 170]
-        ]
-    )
+    if start_point != destination_point:
+        map_obj.fit_bounds(
+            [start_point, destination_point],
+            padding=(70, 70)
+        )
 
     # =========================================================
     # BOTTOM STATUS BAR
     # =========================================================
 
-    status_bar = """
+    status_bar = f"""
     <div style="
         position: fixed;
         bottom: 15px;
@@ -687,25 +578,16 @@ def create_antarctic_map():
         font-size: 14px;
         box-shadow: 0 0 12px rgba(0,234,255,0.5);
     ">
-        🌍 GLOBAL VESSEL MONITORING: ONLINE
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        🧠 AI ENGINE: ACTIVE
+        🚢 ROUTE: {start_name} → {destination_name}
         &nbsp;&nbsp;|&nbsp;&nbsp;
         🧊 ICE MONITORING: ACTIVE
         &nbsp;&nbsp;|&nbsp;&nbsp;
-        🚢 NAVIGATION: ACTIVE
+        🧭 NAVIGATION: ACTIVE
     </div>
     """
 
-    map_obj.get_root().html.add_child(
-        folium.Element(status_bar)
-    )
-# =========================================================
-    # ROUTE SELECTION CONTROL
-    # =========================================================
+    map_obj.get_root().html.add_child(folium.Element(status_bar))
 
-    folium.LayerControl(
-        collapsed=False
-    ).add_to(map_obj)
+    folium.LayerControl(collapsed=False).add_to(map_obj)
 
     return map_obj
