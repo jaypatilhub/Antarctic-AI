@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Antarctic AI - 3D Command Globe</title>
+
+<style>
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    font-family: Arial, sans-serif;
+}
+
+#globe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* =========================
+   TITLE
+========================= */
+
+#title {
+    position: absolute;
+    z-index: 20;
+
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    padding: 8px 18px;
+
+    background: rgba(3, 12, 20, 0.92);
+
+    border: 1px solid #00eaff;
+    border-radius: 8px;
+
+    color: #00eaff;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    letter-spacing: 2px;
+
+    white-space: nowrap;
+
+    box-shadow: 0 0 12px rgba(0,234,255,0.4);
+}
+
+/* =========================
+   COMMON PANELS
+========================= */
+
+.panel {
+    position: absolute;
+    z-index: 20;
+
+    background: rgba(3, 12, 20, 0.94);
+
+    border: 1px solid #00eaff;
+    border-radius: 8px;
+
+    color: white;
+
+    padding: 10px;
+
+    font-size: 10px;
+    line-height: 1.5;
+
+    box-shadow: 0 0 10px rgba(0,234,255,0.3);
+
+    pointer-events: none;
+}
+
+.panel h3 {
+    margin: 0 0 6px 0;
+
+    color: #00eaff;
+
+    font-size: 12px;
+}
+
+.panel hr {
+    border: 0;
+
+    border-top: 1px solid #29404a;
+
+    margin: 7px 0;
+}
+
+/* =========================
+   LEFT TOP
+========================= */
+
+#status {
+    top: 65px;
+    left: 12px;
+
+    width: 155px;
+}
+
+/* =========================
+   RIGHT TOP
+========================= */
+
+#legend {
+    top: 65px;
+    right: 12px;
+
+    width: 145px;
+}
+
+/* =========================
+   LEFT BOTTOM
+========================= */
+
+#navigation {
+    bottom: 45px;
+    left: 12px;
+
+    width: 175px;
+}
+
+/* =========================
+   RIGHT BOTTOM
+========================= */
+
+#monitoring {
+    bottom: 45px;
+    right: 12px;
+
+    width: 155px;
+}
+
+/* =========================
+   BOTTOM BAR
+========================= */
+
+#bottom {
+    position: absolute;
+
+    z-index: 20;
+
+    bottom: 10px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    background: rgba(3, 12, 20, 0.94);
+
+    border: 1px solid #00eaff;
+    border-radius: 6px;
+
+    color: #00eaff;
+
+    padding: 5px 12px;
+
+    font-size: 9px;
+
+    white-space: nowrap;
+}
+
+/* =========================
+   LOADING
+========================= */
+
+#loading {
+    position: absolute;
+
+    z-index: 100;
+
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    color: #00eaff;
+
+    font-size: 18px;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:700px) {
+
+    #title {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .panel {
+        font-size: 8px;
+        padding: 7px;
+    }
+
+    .panel h3 {
+        font-size: 10px;
+    }
+
+    #status {
+        width: 120px;
+    }
+
+    #legend {
+        width: 115px;
+    }
+
+    #navigation {
+        width: 135px;
+    }
+
+    #monitoring {
+        width: 120px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     LOADING
+========================= -->
+
+<div id="loading">
+    Loading Antarctic AI Globe...
+</div>
+
+
+<!-- =========================
+     TITLE
+========================= -->
+
+<div id="title">
+
+    🌍 ANTARCTIC AI
+
+    <span style="
+        color:#7dff9b;
+        font-size:9px;
+        letter-spacing:0;
+        margin-left:8px;
+    ">
+        ● 3D COMMAND VIEW
+    </span>
+
+</div>
+
+
+<!-- =========================
+     AI STATUS
+========================= -->
+
+<div id="status" class="panel">
+
+<h3>AI STATUS</h3>
+
+🟢 System Online<br>
+🟢 Vessel Tracking<br>
+🟢 Sea-Ice Monitoring<br>
+🟢 Navigation Active
+
+<hr>
+
+<b style="color:#00eaff;">
+VESSELS
+</b>
+
+<br>
+
+Tracked: 06<br>
+Our Ship: 01<br>
+Other Ships: 05
+
+<hr>
+
+<b style="color:#00eaff;">
+ICE DATA
+</b>
+
+<br>
+
+Icebergs: 03<br>
+High Risk: 02<br>
+Medium Risk: 01
+
+</div>
+
+
+<!-- =========================
+     LEGEND
+========================= -->
+
+<div id="legend" class="panel">
+
+<h3>MAP LEGEND</h3>
+
+🚢 Our Ship<br>
+⚪ Other Vessel<br>
+🔴 High Risk Iceberg<br>
+🟡 Medium Risk Iceberg<br>
+━━ Vessel Route<br>
+🏁 Destination<br>
+🔴 AI Risk Zone<br>
+🧊 Antarctic Region
+
+</div>
+
+
+<!-- =========================
+     NAVIGATION
+========================= -->
+
+<div id="navigation" class="panel">
+
+<h3>NAVIGATION</h3>
+
+<b>OUR RESEARCH SHIP</b>
+
+<br><br>
+
+Position:<br>
+-70.0°, 20.0°
+
+<br>
+
+Speed: 12.0 knots<br>
+Heading: 074°
+
+<hr>
+
+<b style="color:#00ff66;">
+DESTINATION
+</b>
+
+<br>
+
+Antarctic Research Station
+
+<hr>
+
+⚠️ AI Risk: HIGH
+
+<br>
+
+🟢 Plan A: Recommended
+
+<br>
+
+🟡 Plan B: Standby
+
+</div>
+
+
+<!-- =========================
+     MONITORING
+========================= -->
+
+<div id="monitoring" class="panel">
+
+<h3>MONITORING</h3>
+
+🟢 Satellite: ACTIVE<br>
+🟢 AIS: ACTIVE<br>
+🟢 Ice Analysis: ACTIVE<br>
+🟢 AI Engine: ACTIVE
+
+<hr>
+
+<b style="color:#00eaff;">
+RADAR
+</b>
+
+<br>
+
+Range: 450 km<br>
+Objects: 09
+
+<hr>
+
+<b style="color:#00eaff;">
+SYSTEM
+</b>
+
+<br>
+
+GPS: ACTIVE<br>
+Weather: ACTIVE
+
+</div>
+
+
+<!-- =========================
+     GLOBE
+========================= -->
+
+<div id="globe"></div>
+
+
+<!-- =========================
+     BOTTOM BAR
+========================= -->
+
+<div id="bottom">
+
+🌍 GLOBAL
+&nbsp; | &nbsp;
+🚢 VESSELS
+&nbsp; | &nbsp;
+🧊 ICE
+&nbsp; | &nbsp;
+🧠 AI
+&nbsp; | &nbsp;
+🛰️ NAVIGATION
+
+</div>
+
+
+<!-- =========================
+     GLOBE.GL LIBRARY
+========================= -->
+
+<script src="https://unpkg.com/globe.gl"></script>
+
+
+<script>
+
+window.addEventListener("load", function () {
+
+    try {
+
+        /* =========================
+           CREATE GLOBE
+        ========================= */
+
+        const globeContainer =
+            document.getElementById("globe");
+
+        const globe =
+            Globe()(globeContainer);
+
+
+        /* =========================
+           EARTH
+        ========================= */
+
+        globe.globeImageUrl(
+            "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+        );
+
+        globe.backgroundImageUrl(
+            "https://unpkg.com/three-globe/example/img/night-sky.png"
+        );
+
+        globe.atmosphereColor("#00eaff");
+
+        globe.atmosphereAltitude(0.12);
+
+
+        /* =========================
+           VESSELS
+        ========================= */
+
+        const vessels = [
+
+            {
+                lat:-70,
+                lng:20,
+                name:"OUR RESEARCH SHIP",
+                type:"Research Vessel",
+                speed:"12.0 knots",
+                heading:"074°",
+                destination:"Antarctic Research Station",
+                color:"#00ffff",
+                radius:0.8
+            },
+
+            {
+                lat:-55,
+                lng:20,
+                name:"Ocean Research Vessel",
+                type:"Research Vessel",
+                speed:"12.4 knots",
+                heading:"074°",
+                destination:"Antarctica",
+                color:"#ffffff",
+                radius:0.45
+            },
+
+            {
+                lat:-45,
+                lng:35,
+                name:"Polar Explorer",
+                type:"Research Vessel",
+                speed:"10.8 knots",
+                heading:"120°",
+                destination:"Antarctica",
+                color:"#ffffff",
+                radius:0.45
+            },
+
+            {
+                lat:-40,
+                lng:60,
+                name:"Southern Star",
+                type:"Cargo Vessel",
+                speed:"14.2 knots",
+                heading:"210°",
+                destination:"Hobart",
+                color:"#ffffff",
+                radius:0.45
+            },
+
+            {
+                lat:-35,
+                lng:80,
+                name:"Ice Navigator",
+                type:"Ice Research Vessel",
+                speed:"9.5 knots",
+                heading:"180°",
+                destination:"Antarctica",
+                color:"#ffffff",
+                radius:0.45
+            },
+
+            {
+                lat:-50,
+                lng:-20,
+                name:"Atlantic Voyager",
+                type:"Supply Vessel",
+                speed:"16.1 knots",
+                heading:"095°",
+                destination:"South America",
+                color:"#ffffff",
+                radius:0.45
+            }
+
+        ];
+
+
+        /* =========================
+           ICEBERGS
+        ========================= */
+
+        const icebergs = [
+
+            {
+                lat:-68,
+                lng:25,
+                name:"ICEBERG 01",
+                risk:"HIGH",
+                size:"Large",
+                movement:"South-East",
+                color:"#ff2222",
+                radius:0.7
+            },
+
+            {
+                lat:-72,
+                lng:15,
+                name:"ICEBERG 02",
+                risk:"MEDIUM",
+                size:"Medium",
+                movement:"East",
+                color:"#ffaa00",
+                radius:0.6
+            },
+
+            {
+                lat:-74,
+                lng:30,
+                name:"ICEBERG 03",
+                risk:"HIGH",
+                size:"Large",
+                movement:"South",
+                color:"#ff2222",
+                radius:0.7
+            }
+
+        ];
+
+
+        /* =========================
+           ALL OBJECTS
+        ========================= */
+
+        const allObjects =
+            vessels.concat(icebergs);
+
+
+        globe
+            .pointsData(allObjects)
+
+            .pointLat(d => d.lat)
+
+            .pointLng(d => d.lng)
+
+            .pointAltitude(0.05)
+
+            .pointRadius(d => d.radius)
+
+            .pointColor(d => d.color)
+
+            .pointLabel(d => {
+
+                if(d.type) {
+
+                    return `
+                        🚢 ${d.name}<br>
+                        Type: ${d.type}<br>
+                        Speed: ${d.speed}<br>
+                        Heading: ${d.heading}<br>
+                        Destination: ${d.destination}
+                    `;
+
+                }
+
+                return `
+                    🧊 ${d.name}<br>
+                    Risk: ${d.risk}<br>
+                    Size: ${d.size}<br>
+                    Movement: ${d.movement}
+                `;
+
+            });
+
+
+        /* =========================
+           DESTINATION
+        ========================= */
+
+        const destination = [
+
+            {
+                lat:-65,
+                lng:35,
+                text:"RESEARCH DESTINATION"
+            }
+
+        ];
+
+
+        globe
+            .labelsData(destination)
+
+            .labelLat(d => d.lat)
+
+            .labelLng(d => d.lng)
+
+            .labelText(d => "🏁 " + d.text)
+
+            .labelColor(() => "#00ff66")
+
+            .labelSize(1.3)
+
+            .labelAltitude(0.06);
+
+
+        /* =========================
+           VESSEL ROUTES
+        ========================= */
+
+        const routes = [
+
+            {
+                name:"Our Ship Route",
+
+                coords:[
+                    [-70,20],
+                    [-69,22],
+                    [-68,25],
+                    [-67,28],
+                    [-65,35]
+                ],
+
+                color:"#00eaff"
+            },
+
+            {
+                name:"Polar Explorer Route",
+
+                coords:[
+                    [-45,35],
+                    [-48,32],
+                    [-52,28],
+                    [-56,24],
+                    [-60,22]
+                ],
+
+                color:"#ffffff"
+            },
+
+            {
+                name:"Southern Star Route",
+
+                coords:[
+                    [-40,60],
+                    [-42,55],
+                    [-44,50],
+                    [-46,45],
+                    [-48,40]
+                ],
+
+                color:"#ffffff"
+            }
+
+        ];
+
+
+        /* =========================
+           ICEBERG MOVEMENT
+        ========================= */
+
+        const icebergRoutes = [
+
+            {
+                name:"Iceberg 01 Movement",
+
+                coords:[
+                    [-68,25],
+                    [-68.5,26],
+                    [-69,27],
+                    [-69.5,28]
+                ],
+
+                color:"#ff2222"
+            },
+
+            {
+                name:"Iceberg 02 Movement",
+
+                coords:[
+                    [-72,15],
+                    [-72,17],
+                    [-72,19],
+                    [-72,21]
+                ],
+
+                color:"#ffaa00"
+            },
+
+            {
+                name:"Iceberg 03 Movement",
+
+                coords:[
+                    [-74,30],
+                    [-75,30],
+                    [-76,30],
+                    [-77,30]
+                ],
+
+                color:"#ff2222"
+            }
+
+        ];
+
+
+        /* =========================
+           DRAW ROUTES
+        ========================= */
+
+        globe
+            .pathsData(
+                routes.concat(icebergRoutes)
+            )
+
+            .pathPoints(d => d.coords)
+
+            .pathPointLat(p => p[0])
+
+            .pathPointLng(p => p[1])
+
+            .pathColor(d => d.color)
+
+            .pathStroke(2)
+
+            .pathDashLength(0.4)
+
+            .pathDashGap(0.2)
+
+            .pathDashAnimateTime(1800)
+
+            .pathLabel(d => d.name);
+
+
+        /* =========================
+           ANTARCTIC REGION
+        ========================= */
+
+        const antarctica = [
+
+            {
+                polygon:[
+
+                    [-60,-180],
+                    [-60,-120],
+                    [-60,-60],
+                    [-60,0],
+                    [-60,60],
+                    [-60,120],
+                    [-60,180],
+
+                    [-68,150],
+                    [-74,120],
+                    [-78,80],
+                    [-80,40],
+                    [-81,0],
+                    [-80,-40],
+                    [-78,-80],
+                    [-74,-120],
+                    [-68,-150],
+
+                    [-60,-180]
+
+                ]
+            }
+
+        ];
+
+
+        globe
+            .polygonsData(antarctica)
+
+            .polygonGeoJsonGeometry(
+                d => ({
+
+                    type:"Polygon",
+
+                    coordinates:[
+                        d.polygon.map(
+                            p => [p[1],p[0]]
+                        )
+                    ]
+
+                })
+            )
+
+            .polygonCapColor(
+                () => "rgba(0,234,255,0.10)"
+            )
+
+            .polygonSideColor(
+                () => "rgba(0,234,255,0.15)"
+            )
+
+            .polygonStrokeColor(
+                () => "#00eaff"
+            );
+
+
+        /* =========================
+           AI RISK ZONE
+        ========================= */
+
+        const riskZone = [
+
+            {
+                lat:-72,
+                lng:20
+            }
+
+        ];
+
+
+        globe
+            .ringsData(riskZone)
+
+            .ringLat(d => d.lat)
+
+            .ringLng(d => d.lng)
+
+            .ringColor(() => "#ff0033")
+
+            .ringMaxRadius(6)
+
+            .ringPropagationSpeed(0)
+
+            .ringRepeatPeriod(100000);
+
+
+        /* =========================
+           DESTINATION RADAR
+        ========================= */
+
+        globe
+            .ringsData(destination)
+
+            .ringLat(d => d.lat)
+
+            .ringLng(d => d.lng)
+
+            .ringColor(() => "#00ff66")
+
+            .ringMaxRadius(2.5)
+
+            .ringPropagationSpeed(1)
+
+            .ringRepeatPeriod(1500);
+
+
+        /* =========================
+           OUR SHIP RADAR
+        ========================= */
+
+        const shipRadar = [
+
+            {
+                lat:-70,
+                lng:20
+            }
+
+        ];
+
+
+        globe
+            .ringsData(shipRadar)
+
+            .ringLat(d => d.lat)
+
+            .ringLng(d => d.lng)
+
+            .ringColor(() => "#00eaff")
+
+            .ringMaxRadius(2.5)
+
+            .ringPropagationSpeed(1)
+
+            .ringRepeatPeriod(1200);
+
+
+        /* =========================
+           CAMERA
+        ========================= */
+
+        globe.pointOfView(
+
+            {
+                lat:-65,
+                lng:20,
+                altitude:1.8
+            },
+
+            1500
+
+        );
+
+
+        /* =========================
+           CONTROLS
+        ========================= */
+
+        const controls =
+            globe.controls();
+
+        if(controls){
+
+            controls.enableZoom = true;
+
+            controls.enablePan = false;
+
+            controls.autoRotate = false;
+
+        }
+
+
+        /* =========================
+           FINISHED
+        ========================= */
+
+        document.getElementById(
+            "loading"
+        ).style.display = "none";
+
+
+        console.log(
+            "ANTARCTIC AI GLOBE ONLINE"
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        document.getElementById(
+            "loading"
+        ).innerHTML =
+        "Globe Error - Press F12 and check Console";
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

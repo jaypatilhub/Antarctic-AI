@@ -1,92 +1,41 @@
-import streamlit as st
 import folium
-from streamlit_folium import st_folium
-from ml_prediction import run_predictions
 
-
-# =========================================================
-# STARTING POINT FUNCTION
-# =========================================================
-
-def add_starting_point(map_obj, latitude, longitude):
-
-    start_layer = folium.FeatureGroup(
-        name="🟢 Starting Point",
-        show=True
-    )
-
-    start_icon = folium.DivIcon(
-        html="""
-        <div style="
-            font-size:30px;
-            text-align:center;
-            width:40px;
-            height:40px;
-            filter:drop-shadow(0 0 8px #00ff66);
-        ">
-            🟢
-        </div>
-        """
-    )
-
-    folium.Marker(
-        location=[latitude, longitude],
-        popup="""
-        <b>🟢 STARTING POINT</b><br>
-        Vessel navigation starting position
-        """,
-        tooltip="🟢 STARTING POINT",
-        icon=start_icon
-    ).add_to(start_layer)
-
-    start_layer.add_to(map_obj)
-
-
-# =========================================================
-# MAIN MAP FUNCTION
-# =========================================================
 
 def create_antarctic_map():
 
-    # =====================================================
+    # =========================================================
     # GLOBAL WORLD MAP
-    # =====================================================
+    # =========================================================
 
     map_obj = folium.Map(
         location=[20, 0],
         zoom_start=2,
         min_zoom=2,
-        max_zoom=50,
+        max_zoom=8,
         tiles="OpenStreetMap"
     )
 
-    # =====================================================
-    # STARTING POINT
-    # =====================================================
-
-    add_starting_point(map_obj, -70, 20)
-
-    # =====================================================
+    # =========================================================
     # TITLE
-    # =====================================================
+    # =========================================================
 
     title_html = """
     <div style="
-        position:fixed;
-        top:15px;
-        left:50%;
-        transform:translateX(-50%);
-        z-index:9999;
-        background:rgba(5,15,25,0.95);
-        color:#00eaff;
-        padding:12px 30px;
-        border:1px solid #00eaff;
-        border-radius:8px;
-        font-family:Arial;
-        font-size:22px;
-        font-weight:bold;
-        letter-spacing:2px;
-        box-shadow:0 0 15px #00eaff;
+        position: fixed;
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        background: rgba(5, 15, 25, 0.95);
+        color: #00eaff;
+        padding: 12px 30px;
+        border: 1px solid #00eaff;
+        border-radius: 8px;
+        font-family: Arial;
+        font-size: 22px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        box-shadow: 0 0 15px #00eaff;
     ">
         🌍 ANTARCTIC AI — GLOBAL VESSEL MONITOR
     </div>
@@ -96,24 +45,24 @@ def create_antarctic_map():
         folium.Element(title_html)
     )
 
-    # =====================================================
+    # =========================================================
     # LEFT AI STATUS PANEL
-    # =====================================================
+    # =========================================================
 
     info_panel = """
     <div style="
-        position:fixed;
-        top:80px;
-        left:20px;
-        z-index:9999;
-        width:230px;
-        background:rgba(5,15,25,0.95);
-        color:white;
-        padding:15px;
-        border:1px solid #00eaff;
-        border-radius:10px;
-        font-family:Arial;
-        box-shadow:0 0 12px rgba(0,234,255,0.5);
+        position: fixed;
+        top: 80px;
+        left: 20px;
+        z-index: 9999;
+        width: 230px;
+        background: rgba(5, 15, 25, 0.95);
+        color: white;
+        padding: 15px;
+        border: 1px solid #00eaff;
+        border-radius: 10px;
+        font-family: Arial;
+        box-shadow: 0 0 12px rgba(0,234,255,0.5);
     ">
 
         <div style="
@@ -155,25 +104,26 @@ def create_antarctic_map():
         folium.Element(info_panel)
     )
 
-    # =====================================================
+    # =========================================================
     # RIGHT LEGEND
-    # =====================================================
+    # =========================================================
+    # Moved down to prevent overlap with Layer Control
 
     legend_html = """
-    <div style="
-        position:fixed;
-        top:270px;
-        right:20px;
-        z-index:9999;
-        width:190px;
-        background:rgba(5,15,25,0.95);
-        color:white;
-        padding:15px;
-        border:1px solid #00eaff;
-        border-radius:10px;
-        font-family:Arial;
-        box-shadow:0 0 12px rgba(0,234,255,0.5);
-    ">
+<div style="
+    position: fixed;
+    top: 270px;
+    right: 20px;
+    z-index: 9999;
+    width: 190px;
+    background: rgba(5, 15, 25, 0.95);
+    color: white;
+    padding: 15px;
+    border: 1px solid #00eaff;
+    border-radius: 10px;
+    font-family: Arial;
+    box-shadow: 0 0 12px rgba(0,234,255,0.5);
+">
 
         <div style="
             color:#00eaff;
@@ -201,23 +151,17 @@ def create_antarctic_map():
         folium.Element(legend_html)
     )
 
-    # =====================================================
+    # =========================================================
     # WORLD COUNTRIES
-    # =====================================================
+    # =========================================================
 
     countries_layer = folium.FeatureGroup(
         name="🌍 Countries",
         show=True
     )
 
-    world_url = (
-        "https://raw.githubusercontent.com/"
-        "python-visualization/folium/main/"
-        "examples/data/world-countries.json"
-    )
-
     folium.GeoJson(
-        world_url,
+        "https://raw.githubusercontent.com/python-visualization/folium/main/examples/data/world-countries.json",
         style_function=lambda feature: {
             "fillColor": "#12333d",
             "color": "#00eaff",
@@ -233,9 +177,9 @@ def create_antarctic_map():
 
     countries_layer.add_to(map_obj)
 
-    # =====================================================
-    # GLOBAL DEMO VESSELS
-    # =====================================================
+    # =========================================================
+    # GLOBAL DEMO SHIPS
+    # =========================================================
 
     vessels_layer = folium.FeatureGroup(
         name="🚢 Vessels",
@@ -243,6 +187,7 @@ def create_antarctic_map():
     )
 
     vessels = [
+
         {
             "name": "Ocean Pioneer",
             "type": "Research Vessel",
@@ -253,6 +198,7 @@ def create_antarctic_map():
             "destination": "Cape Town",
             "status": "Active"
         },
+
         {
             "name": "Polar Explorer",
             "type": "Research Vessel",
@@ -263,6 +209,7 @@ def create_antarctic_map():
             "destination": "Antarctica",
             "status": "Active"
         },
+
         {
             "name": "Southern Star",
             "type": "Cargo Vessel",
@@ -273,6 +220,7 @@ def create_antarctic_map():
             "destination": "Hobart",
             "status": "Active"
         },
+
         {
             "name": "Atlantic Voyager",
             "type": "Supply Vessel",
@@ -283,6 +231,7 @@ def create_antarctic_map():
             "destination": "South America",
             "status": "Active"
         },
+
         {
             "name": "Ice Navigator",
             "type": "Ice Research Vessel",
@@ -293,6 +242,7 @@ def create_antarctic_map():
             "destination": "Antarctica",
             "status": "Active"
         }
+
     ]
 
     for vessel in vessels:
@@ -311,7 +261,7 @@ def create_antarctic_map():
         )
 
         popup_html = f"""
-        <div style="font-family:Arial;width:230px;">
+        <div style="font-family:Arial; width:230px;">
 
             <h4 style="color:#0088aa;">
                 🚢 {vessel["name"]}
@@ -340,9 +290,9 @@ def create_antarctic_map():
 
     vessels_layer.add_to(map_obj)
 
-    # =====================================================
+    # =========================================================
     # OUR RESEARCH SHIP
-    # =====================================================
+    # =========================================================
 
     our_ship_layer = folium.FeatureGroup(
         name="🚢 Our Research Ship",
@@ -356,7 +306,7 @@ def create_antarctic_map():
             text-align:center;
             width:45px;
             height:45px;
-            filter:drop-shadow(0 0 10px #00eaff);
+            filter: drop-shadow(0 0 10px #00eaff);
         ">
             🚢
         </div>
@@ -366,7 +316,7 @@ def create_antarctic_map():
     folium.Marker(
         location=[-70, 20],
         popup="""
-        <div style="font-family:Arial;width:230px;">
+        <div style="font-family:Arial; width:230px;">
 
             <h4 style="color:#0088aa;">
                 🚢 OUR RESEARCH SHIP
@@ -388,9 +338,9 @@ def create_antarctic_map():
 
     our_ship_layer.add_to(map_obj)
 
-    # =====================================================
+    # =========================================================
     # AI MONITORING RANGE
-    # =====================================================
+    # =========================================================
 
     radar_layer = folium.FeatureGroup(
         name="🛰️ AI Monitoring Range",
@@ -428,14 +378,18 @@ def create_antarctic_map():
 
     radar_layer.add_to(map_obj)
 
-    # =====================================================
-    # SEA ICE
-    # =====================================================
+    # =========================================================
+    # SEA ICE LAYER
+    # =========================================================
 
     sea_ice_layer = folium.FeatureGroup(
         name="🧊 Sea Ice",
         show=True
     )
+
+    # ---------------------------------------------------------
+    # LOW ICE
+    # ---------------------------------------------------------
 
     low_ice_zone = [
         [-66, 5],
@@ -457,6 +411,10 @@ def create_antarctic_map():
         fill_opacity=0.20
     ).add_to(sea_ice_layer)
 
+    # ---------------------------------------------------------
+    # MEDIUM ICE
+    # ---------------------------------------------------------
+
     medium_ice_zone = [
         [-70, 5],
         [-69, 18],
@@ -476,6 +434,10 @@ def create_antarctic_map():
         fill_color="#ffaa00",
         fill_opacity=0.25
     ).add_to(sea_ice_layer)
+
+    # ---------------------------------------------------------
+    # HEAVY ICE
+    # ---------------------------------------------------------
 
     heavy_ice_zone = [
         [-74, 10],
@@ -499,9 +461,9 @@ def create_antarctic_map():
 
     sea_ice_layer.add_to(map_obj)
 
-    # =====================================================
+    # =========================================================
     # AI RISK ZONE
-    # =====================================================
+    # =========================================================
 
     risk_layer = folium.FeatureGroup(
         name="⚠️ AI Risk Zone",
@@ -522,9 +484,9 @@ def create_antarctic_map():
 
     risk_layer.add_to(map_obj)
 
-    # =====================================================
+    # =========================================================
     # DESTINATION
-    # =====================================================
+    # =========================================================
 
     destination_layer = folium.FeatureGroup(
         name="🏁 Destination",
@@ -538,7 +500,7 @@ def create_antarctic_map():
             text-align:center;
             width:40px;
             height:40px;
-            filter:drop-shadow(0 0 8px #00ff66);
+            filter: drop-shadow(0 0 8px #00ff66);
         ">
             🏁
         </div>
@@ -558,9 +520,9 @@ def create_antarctic_map():
 
     destination_layer.add_to(map_obj)
 
-    # =====================================================
+    # =========================================================
     # AI RECOMMENDED ROUTE
-    # =====================================================
+    # =========================================================
 
     route_layer = folium.FeatureGroup(
         name="🛣️ AI Recommended Route",
@@ -578,15 +540,15 @@ def create_antarctic_map():
         color="#00eaff",
         weight=4,
         opacity=0.9,
-        dash_array="10,8",
+        dash_array="10, 8",
         tooltip="🛰️ AI RECOMMENDED ROUTE"
     ).add_to(route_layer)
 
     route_layer.add_to(map_obj)
 
-    # =====================================================
-    # ICEBERGS
-    # =====================================================
+    # =========================================================
+    # ICEBERG LAYER
+    # =========================================================
 
     iceberg_layer = folium.FeatureGroup(
         name="🧊 Icebergs",
@@ -606,7 +568,9 @@ def create_antarctic_map():
         """
     )
 
+    # ---------------------------------------------------------
     # ICEBERG 01
+    # ---------------------------------------------------------
 
     folium.Marker(
         location=[-71, 25],
@@ -632,7 +596,9 @@ def create_antarctic_map():
         tooltip="➡️ Iceberg 01 Movement"
     ).add_to(iceberg_layer)
 
+    # ---------------------------------------------------------
     # ICEBERG 02
+    # ---------------------------------------------------------
 
     folium.Marker(
         location=[-73, 15],
@@ -658,7 +624,9 @@ def create_antarctic_map():
         tooltip="➡️ Iceberg 02 Movement"
     ).add_to(iceberg_layer)
 
+    # ---------------------------------------------------------
     # ICEBERG 03
+    # ---------------------------------------------------------
 
     folium.Marker(
         location=[-75, 28],
@@ -686,17 +654,17 @@ def create_antarctic_map():
 
     iceberg_layer.add_to(map_obj)
 
-    # =====================================================
+    # =========================================================
     # LAYER CONTROL
-    # =====================================================
+    # =========================================================
 
     folium.LayerControl(
         collapsed=False
     ).add_to(map_obj)
 
-    # =====================================================
+    # =========================================================
     # GLOBAL WORLD VIEW
-    # =====================================================
+    # =========================================================
 
     map_obj.fit_bounds(
         [
@@ -705,25 +673,25 @@ def create_antarctic_map():
         ]
     )
 
-    # =====================================================
+    # =========================================================
     # BOTTOM STATUS BAR
-    # =====================================================
+    # =========================================================
 
     status_bar = """
     <div style="
-        position:fixed;
-        bottom:15px;
-        left:50%;
-        transform:translateX(-50%);
-        z-index:9999;
-        background:rgba(5,15,25,0.95);
-        color:#00eaff;
-        padding:10px 25px;
-        border:1px solid #00eaff;
-        border-radius:8px;
-        font-family:Arial;
-        font-size:14px;
-        box-shadow:0 0 12px rgba(0,234,255,0.5);
+        position: fixed;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        background: rgba(5,15,25,0.95);
+        color: #00eaff;
+        padding: 10px 25px;
+        border: 1px solid #00eaff;
+        border-radius: 8px;
+        font-family: Arial;
+        font-size: 14px;
+        box-shadow: 0 0 12px rgba(0,234,255,0.5);
     ">
         🌍 GLOBAL VESSEL MONITORING: ONLINE
         &nbsp;&nbsp;|&nbsp;&nbsp;
@@ -739,8 +707,8 @@ def create_antarctic_map():
         folium.Element(status_bar)
     )
 
-    # =====================================================
+    # =========================================================
     # RETURN MAP
-    # =====================================================
+    # =========================================================
 
     return map_obj

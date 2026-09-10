@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 DATA_FILE = "ml_data/antarctic_prototype_data.csv"
 
 
@@ -12,15 +11,12 @@ def load_data():
 def predict_sea_ice(data, days_ahead=3):
     """
     Prototype sea-ice prediction.
-
-    Uses recent observations to estimate the future
+    Uses recent observations to estimate future
     sea-ice concentration.
     """
-
     recent = data["sea_ice_concentration"].tail(5)
 
     daily_change = recent.diff().mean()
-
     current_value = recent.iloc[-1]
 
     predictions = []
@@ -28,6 +24,7 @@ def predict_sea_ice(data, days_ahead=3):
     for day in range(1, days_ahead + 1):
         predicted_value = current_value + (daily_change * day)
 
+        # Keep sea-ice concentration between 0% and 100%
         predicted_value = max(0, min(100, predicted_value))
 
         predictions.append({
@@ -44,41 +41,54 @@ def predict_iceberg_trajectory(data, days_ahead=3):
     """
     Prototype iceberg trajectory prediction.
 
-    Uses the latest iceberg position and movement
+    Uses the latest iceberg position, speed and direction
     to estimate future positions.
     """
 
     latest = data.iloc[-1]
 
-    latitude = latest["iceberg_latitude"]
-    longitude = latest["iceberg_longitude"]
-
-    speed = latest["iceberg_speed_kmh"]
+    latitude = float(latest["iceberg_latitude"])
+    longitude = float(latest["iceberg_longitude"])
+    speed = float(latest["iceberg_speed_kmh"])
+    direction = str(latest["iceberg_direction"])
 
     predictions = []
 
     for day in range(1, days_ahead + 1):
 
-        # Simple prototype movement for SE direction.
+        # Prototype movement for SE direction
         latitude_change = -0.15 * day
         longitude_change = 0.15 * day
+
+        predicted_latitude = latitude + latitude_change
+        predicted_longitude = longitude + longitude_change
 
         predictions.append({
             "day_ahead": day,
             "predicted_latitude": round(
-                latitude + latitude_change, 3
+                predicted_latitude, 3
             ),
             "predicted_longitude": round(
-                longitude + longitude_change, 3
+                predicted_longitude, 3
             ),
             "speed_kmh": speed,
-            "direction": latest["iceberg_direction"]
+            "direction": direction
         })
 
     return predictions
 
 
 def run_predictions(days_ahead=3):
+    """Run both sea-ice and iceberg predictions."""
+
+    if not isinstance(days_ahead, int):
+        raise ValueError("days_ahead must be an integer")
+
+    if days_ahead < 1:
+        raise ValueError("days_ahead must be at least 1")
+
+    if days_ahead > 30:
+        raise ValueError("days_ahead cannot exceed 30")
 
     data = load_data()
 
