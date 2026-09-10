@@ -1,4 +1,5 @@
-from ml_prediction import run_predictions
+﻿from ml_model import get_sea_ice_prediction
+from ml_prediction import predict_iceberg_trajectory, load_data
 
 
 def get_ai_predictions(days_ahead=3):
@@ -12,11 +13,15 @@ def get_ai_predictions(days_ahead=3):
     if days_ahead > 30:
         raise ValueError("days_ahead cannot exceed 30")
 
-    result = run_predictions(days_ahead=days_ahead)
+    # ==============================
+    # SEA-ICE PREDICTION
+    # ==============================
+
+    sea_ice_result = get_sea_ice_prediction(days_ahead)
 
     sea_ice_predictions = []
 
-    for prediction in result["sea_ice_prediction"]:
+    for prediction in sea_ice_result["predictions"]:
         sea_ice_predictions.append({
             "day_ahead": int(prediction["day_ahead"]),
             "predicted_sea_ice_concentration": float(
@@ -24,9 +29,20 @@ def get_ai_predictions(days_ahead=3):
             )
         })
 
+    # ==============================
+    # ICEBERG TRAJECTORY PREDICTION
+    # ==============================
+
+    data = load_data()
+
+    iceberg_predictions_raw = predict_iceberg_trajectory(
+        data,
+        days_ahead
+    )
+
     iceberg_predictions = []
 
-    for prediction in result["iceberg_prediction"]:
+    for prediction in iceberg_predictions_raw:
         iceberg_predictions.append({
             "day_ahead": int(prediction["day_ahead"]),
             "predicted_latitude": float(
@@ -43,36 +59,45 @@ def get_ai_predictions(days_ahead=3):
             )
         })
 
+    # ==============================
+    # FINAL AI OUTPUT
+    # ==============================
+
     return {
         "status": "success",
         "prediction_status": "prototype",
-        "model_type": "trend_based_prototype",
+        "model_type": "Linear Regression + prototype iceberg trajectory",
         "data_source": "ml_data/antarctic_prototype_data.csv",
-        "is_ml_trained": False,
+        "is_ml_trained": True,
+        "sea_ice_mae": float(
+            sea_ice_result["mae"]
+        ),
         "forecast_days": int(days_ahead),
         "sea_ice_prediction": sea_ice_predictions,
         "iceberg_prediction": iceberg_predictions
     }
 
 
+# ==============================
+# TEST
+# ==============================
+
 if __name__ == "__main__":
 
-    predictions = get_ai_predictions(days_ahead=3)
+    result = get_ai_predictions(days_ahead=3)
 
-    print("=== AI PREDICTION MODULE ===")
-    print("Status:", predictions["status"])
-    print("Prediction Status:", predictions["prediction_status"])
-    print("Model Type:", predictions["model_type"])
-    print("Data Source:", predictions["data_source"])
-    print("ML Trained:", predictions["is_ml_trained"])
-    print("Forecast Days:", predictions["forecast_days"])
+    print("\n=== AI PREDICTION MODULE ===")
+    print("Status:", result["status"])
+    print("Model:", result["model_type"])
+    print("ML Trained:", result["is_ml_trained"])
+    print("Sea-Ice MAE:", result["sea_ice_mae"])
 
     print("\n=== SEA-ICE PREDICTION ===")
 
-    for prediction in predictions["sea_ice_prediction"]:
+    for prediction in result["sea_ice_prediction"]:
         print(prediction)
 
     print("\n=== ICEBERG TRAJECTORY ===")
 
-    for prediction in predictions["iceberg_prediction"]:
+    for prediction in result["iceberg_prediction"]:
         print(prediction)
