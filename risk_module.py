@@ -58,7 +58,7 @@ def assess_sea_ice(sea_ice_condition):
         )
 
 
-def calculate_overall_risk(distance, sea_ice_condition):
+def calculate_ice_and_sea_ice_risk(distance, sea_ice_condition):
     """
     Calculate overall risk using distance and sea-ice condition.
     """
@@ -87,114 +87,28 @@ def calculate_risk_from_data(distance_km, sea_ice_concentration):
         sea_ice_concentration
     )
 
-    return calculate_overall_risk(
+    return calculate_ice_and_sea_ice_risk(
         distance_km,
         sea_ice_condition
     )
-    
-def assess_trajectory_risk(speed_knots=None, heading_degrees=None):
-    """
-    Prepare trajectory-related inputs for future risk analysis.
-
-    This prototype does not calculate trajectory risk yet.
-    It only validates the trajectory inputs so a future
-    risk model can use them safely.
-    """
-
-    if speed_knots is not None and speed_knots < 0:
-        raise ValueError("Speed cannot be negative.")
-
-    if heading_degrees is not None and not 0 <= heading_degrees <= 360:
-        raise ValueError("Heading must be between 0 and 360 degrees.")
-
-    return {
-        "speed_knots": speed_knots,
-        "heading_degrees": heading_degrees,
-        "trajectory_risk": None
-    }
-    
-def get_risk_explanation(distance_km, sea_ice_concentration):
-    """
-    Provide a clear explanation for the overall risk.
-    Prototype rule-based explanation.
-    """
-
-    overall_risk = calculate_risk_from_data(
-        distance_km,
-        sea_ice_concentration
-    )
-
-    distance_risk = calculate_risk(distance_km)
-
-    sea_ice_condition = classify_sea_ice_concentration(
-        sea_ice_concentration
-    )
-
-    return (
-        f"Risk: {overall_risk}. "
-        f"Iceberg distance risk: {distance_risk}. "
-        f"Sea-ice condition: {sea_ice_condition} "
-        f"({sea_ice_concentration}%)."
-    )
             
-    
+        
 def get_risk_reason(distance_km):
     """
-    Give a clear explanation for the calculated risk.
+    Give a simple explanation for the calculated risk.
     """
-
-    if distance_km < 0:
-        raise ValueError("Distance cannot be negative.")
 
     if distance_km <= 5:
-        return "CRITICAL: Vessel is extremely close to an iceberg."
+        return "Vessel is extremely close to an iceberg."
 
     elif distance_km <= 15:
-        return "HIGH: Vessel is relatively close to an iceberg."
+        return "Vessel is relatively close to an iceberg."
 
     elif distance_km <= 30:
-        return "MEDIUM: Vessel has a moderate distance from an iceberg."
+        return "Vessel has a moderate distance from an iceberg."
 
     else:
-        return "LOW: Vessel is at a relatively safe distance from an iceberg."
-    
-    
-def calculate_risk_score(distance_km, sea_ice_concentration):
-    """
-    Calculate a numeric risk score from iceberg distance
-    and sea-ice concentration.
-
-    Higher score = higher risk.
-    Prototype rule-based scoring.
-    """
-
-    if distance_km < 0:
-        raise ValueError("Distance cannot be negative.")
-
-    if sea_ice_concentration < 0 or sea_ice_concentration > 100:
-        raise ValueError(
-            "Sea-ice concentration must be between 0 and 100."
-        )
-
-    distance_score = {
-        "CRITICAL": 100,
-        "HIGH": 75,
-        "MEDIUM": 50,
-        "LOW": 25
-    }
-
-    distance_risk = calculate_risk(distance_km)
-
-    # Sea-ice contributes up to 100 points.
-    sea_ice_score = sea_ice_concentration
-
-    # Weighted multi-factor score.
-    final_score = (
-        0.6 * distance_score[distance_risk]
-        + 0.4 * sea_ice_score
-    )
-
-    return round(final_score, 2)
+        return "Vessel is at a relatively safe distance from an iceberg."
 
 
 if __name__ == "__main__":
@@ -207,11 +121,46 @@ if __name__ == "__main__":
         print(f"Distance: {distance} km → Risk: {risk}")
         print(f"Reason: {reason}")
         print()
-        
-def calculate_environmental_risk(wind_speed_knots, wave_height_m):
+# M4 Risk & Safety Upgrade - Demo/Simulation Logic
+
+
+def calculate_ice_risk(iceberg_distance_km, sea_ice_concentration):
     """
-    Calculate environmental risk from wind speed and wave height.
-    Prototype rule-based logic.
+    Calculate ice-related navigation risk.
+    Demo/simulation rule-based logic only.
+    """
+
+    if iceberg_distance_km < 0:
+        raise ValueError("Iceberg distance cannot be negative.")
+
+    if sea_ice_concentration < 0 or sea_ice_concentration > 100:
+        raise ValueError(
+            "Sea-ice concentration must be between 0 and 100."
+        )
+
+    iceberg_risk = calculate_risk(iceberg_distance_km)
+    sea_ice_condition = classify_sea_ice_concentration(
+        sea_ice_concentration
+    )
+    sea_ice_risk = assess_sea_ice(sea_ice_condition)
+
+    risk_levels = {
+        "LOW": 1,
+        "MEDIUM": 2,
+        "HIGH": 3,
+        "CRITICAL": 4
+    }
+
+    if risk_levels[iceberg_risk] >= risk_levels[sea_ice_risk]:
+        return iceberg_risk
+    else:
+        return sea_ice_risk
+
+
+def calculate_weather_risk(wind_speed_knots, wave_height_m):
+    """
+    Calculate weather-related navigation risk.
+    Demo/simulation rule-based logic only.
     """
 
     if wind_speed_knots < 0:
@@ -231,73 +180,37 @@ def calculate_environmental_risk(wind_speed_knots, wave_height_m):
 
     else:
         return "LOW"
-    
-def assess_future_risk(current_risk, expected_wind_speed_knots=None,
-                       expected_wave_height_m=None):
-    """
-    Assess future risk using the current risk level and
-    expected environmental conditions.
 
-    Prototype rule-based future-risk assessment.
+
+def calculate_ocean_risk(current_speed_knots, wave_height_m):
+    """
+    Calculate ocean-related navigation risk.
+    Demo/simulation rule-based logic only.
     """
 
-    valid_risks = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    if current_speed_knots < 0:
+        raise ValueError("Ocean current speed cannot be negative.")
 
-    current_risk = current_risk.strip().upper()
+    if wave_height_m < 0:
+        raise ValueError("Wave height cannot be negative.")
 
-    if current_risk not in valid_risks:
-        raise ValueError(
-            "Current risk must be LOW, MEDIUM, HIGH, or CRITICAL."
-        )
+    if current_speed_knots >= 3 or wave_height_m >= 6:
+        return "CRITICAL"
 
-    if expected_wind_speed_knots is not None and expected_wind_speed_knots < 0:
-        raise ValueError("Expected wind speed cannot be negative.")
+    elif current_speed_knots >= 2 or wave_height_m >= 4:
+        return "HIGH"
 
-    if expected_wave_height_m is not None and expected_wave_height_m < 0:
-        raise ValueError("Expected wave height cannot be negative.")
+    elif current_speed_knots >= 1 or wave_height_m >= 2:
+        return "MEDIUM"
 
-    future_risk = current_risk
+    else:
+        return "LOW"
 
-    if (expected_wind_speed_knots is not None and
-            expected_wave_height_m is not None):
-
-        environmental_risk = calculate_environmental_risk(
-            expected_wind_speed_knots,
-            expected_wave_height_m
-        )
-
-        risk_levels = {
-            "LOW": 1,
-            "MEDIUM": 2,
-            "HIGH": 3,
-            "CRITICAL": 4
-        }
-
-        if risk_levels[environmental_risk] > risk_levels[future_risk]:
-            future_risk = environmental_risk
-
-    return future_risk
-
-def calculate_multifactor_risk(
-    distance_km,
-    sea_ice_concentration,
-    wind_speed_knots,
-    wave_height_m
-):
+def calculate_overall_risk(ice_risk, weather_risk, ocean_risk):
     """
-    Calculate overall risk using multiple environmental factors.
-    Prototype rule-based multi-factor risk.
+    Calculate overall navigation risk from ice, weather, and ocean risks.
+    Demo/simulation rule-based logic only.
     """
-
-    risk_score = calculate_risk_score(
-        distance_km,
-        sea_ice_concentration
-    )
-
-    environmental_risk = calculate_environmental_risk(
-        wind_speed_knots,
-        wave_height_m
-    )
 
     risk_levels = {
         "LOW": 1,
@@ -306,19 +219,103 @@ def calculate_multifactor_risk(
         "CRITICAL": 4
     }
 
-    if environmental_risk == "CRITICAL":
-        risk_level = "CRITICAL"
-    elif environmental_risk == "HIGH":
-        risk_level = "HIGH"
-    elif risk_score >= 70:
-        risk_level = "HIGH"
-    elif risk_score >= 40:
-        risk_level = "MEDIUM"
-    else:
-        risk_level = "LOW"
+    risks = [ice_risk, weather_risk, ocean_risk]
 
-    return {
-        "risk_level": risk_level,
-        "risk_score": risk_score,
-        "environmental_risk": environmental_risk
+    for risk in risks:
+        if risk not in risk_levels:
+            raise ValueError(
+                "Risk level must be LOW, MEDIUM, HIGH, or CRITICAL."
+            )
+
+    return max(risks, key=lambda risk: risk_levels[risk])
+
+def calculate_safety_score(overall_risk):
+    """
+    Convert overall navigation risk into a safety score from 0 to 100.
+    Demo/simulation rule-based logic only.
+    """
+
+    safety_scores = {
+        "LOW": 100,
+        "MEDIUM": 70,
+        "HIGH": 40,
+        "CRITICAL": 10
     }
+
+    if overall_risk not in safety_scores:
+        raise ValueError(
+            "Overall risk must be LOW, MEDIUM, HIGH, or CRITICAL."
+        )
+
+    return safety_scores[overall_risk]
+
+def generate_warnings(
+    ice_risk,
+    weather_risk,
+    ocean_risk
+):
+    """
+    Generate important navigation warnings.
+    Demo/simulation rule-based logic only.
+    """
+
+    warnings = []
+
+    if ice_risk == "CRITICAL":
+        warnings.append("CRITICAL: Extremely high ice navigation risk.")
+    elif ice_risk == "HIGH":
+        warnings.append("WARNING: High iceberg/sea-ice risk.")
+    elif ice_risk == "MEDIUM":
+        warnings.append("CAUTION: Moderate ice navigation risk.")
+
+    if weather_risk == "CRITICAL":
+        warnings.append("CRITICAL: Severe weather conditions.")
+    elif weather_risk == "HIGH":
+        warnings.append("WARNING: High weather-related risk.")
+    elif weather_risk == "MEDIUM":
+        warnings.append("CAUTION: Moderate weather conditions.")
+
+    if ocean_risk == "CRITICAL":
+        warnings.append("CRITICAL: Dangerous ocean conditions.")
+    elif ocean_risk == "HIGH":
+        warnings.append("WARNING: High ocean-condition risk.")
+    elif ocean_risk == "MEDIUM":
+        warnings.append("CAUTION: Moderate ocean conditions.")
+
+    if not warnings:
+        warnings.append("No major navigation warnings.")
+
+    return warnings
+
+def generate_risk_zones():
+    """
+    Generate map-ready risk zone data.
+    Demo/simulation data only.
+    """
+
+    return [
+        {
+            "zone": "Zone A",
+            "risk": "CRITICAL",
+            "latitude": -64.5,
+            "longitude": -62.3
+        },
+        {
+            "zone": "Zone B",
+            "risk": "HIGH",
+            "latitude": -65.1,
+            "longitude": -61.8
+        },
+        {
+            "zone": "Zone C",
+            "risk": "MEDIUM",
+            "latitude": -66.0,
+            "longitude": -60.5
+        },
+        {
+            "zone": "Zone D",
+            "risk": "LOW",
+            "latitude": -67.2,
+            "longitude": -59.7
+        }
+    ]
