@@ -22,6 +22,8 @@ def calculate_route_risk(distance_km, ice_risk):
 
     else:
         return "SAFE"
+
+
 def calculate_fuel(distance_km, fuel_per_km, fuel_cost_per_liter):
     """
     Estimates fuel usage and fuel cost for a route.
@@ -45,6 +47,8 @@ def calculate_fuel(distance_km, fuel_per_km, fuel_cost_per_liter):
         "estimated_fuel_liters": round(estimated_fuel, 2),
         "estimated_fuel_cost": round(estimated_cost, 2)
     }
+
+
 def compare_safety_fuel(route_a, route_b, fuel_per_km, fuel_cost_per_liter):
     """
     Compares two routes using safety first and fuel second.
@@ -103,6 +107,8 @@ def compare_safety_fuel(route_a, route_b, fuel_per_km, fuel_cost_per_liter):
         "route_b_fuel_cost": fuel_b["estimated_fuel_cost"],
         "recommended_route": recommended
     }
+
+
 def recommend_route(distance_km, ice_risk):
     """
     Returns a route recommendation based on route risk.
@@ -141,8 +147,16 @@ def recommend_route(distance_km, ice_risk):
 
 def compare_routes(route_a, route_b):
     """
-    Compares two candidate routes and recommends a safer route.
+    Compares two candidate routes and recommends
+    the safer route. If risk is equal, Route A is selected.
     """
+
+    risk_order = {
+        "SAFE": 1,
+        "CAUTION": 2,
+        "DANGER": 3,
+        "INVALID": 4
+    }
 
     risk_a = calculate_route_risk(
         route_a["distance_km"],
@@ -154,17 +168,17 @@ def compare_routes(route_a, route_b):
         route_b["ice_risk"]
     )
 
-    if risk_a == "SAFE" and risk_b != "SAFE":
+    if risk_order[risk_a] < risk_order[risk_b]:
         recommended = "Route A"
 
-    elif risk_b == "SAFE" and risk_a != "SAFE":
+    elif risk_order[risk_b] < risk_order[risk_a]:
         recommended = "Route B"
 
-    elif risk_a == "SAFE" and risk_b == "SAFE":
+    elif risk_a != "INVALID":
         recommended = "Route A"
 
     else:
-        recommended = "No safe route"
+        recommended = "No valid route"
 
     return {
         "route_a_risk": risk_a,
@@ -172,13 +186,20 @@ def compare_routes(route_a, route_b):
         "recommended_route": recommended
     }
 
-def rank_routes(routes, fuel_per_km, fuel_cost_per_liter):
+
+def rank_routes(routes, fuel_per_km=None, fuel_cost_per_liter=None):
     """
-    Ranks candidate routes using safety first and fuel second.
+    Ranks candidate routes from best to worst.
+
+    Safety is considered first.
+    Fuel is considered second.
 
     This is a simple prototype ranking system,
     not a real scientific navigation algorithm.
     """
+
+    if not routes:
+        raise ValueError("At least one route is required.")
 
     risk_order = {
         "SAFE": 1,
@@ -190,33 +211,59 @@ def rank_routes(routes, fuel_per_km, fuel_cost_per_liter):
     ranked_routes = []
 
     for route in routes:
-        risk = calculate_route_risk(
-            route["distance_km"],
-            route["ice_risk"]
-        )
 
-        fuel = calculate_fuel(
+        # New route format
+        if "risk_level" in route:
+            risk = route["risk_level"].strip().upper()
+
+        # Older route format
+        elif "ice_risk" in route:
+            risk = calculate_route_risk(
+                route["distance_km"],
+                route["ice_risk"]
+            )
+
+        else:
+            risk = "INVALID"
+
+        if "fuel_cost" in route:
+            fuel_cost = route["fuel_cost"]
+
+        elif fuel_per_km is not None and fuel_cost_per_liter is not None:
+            fuel = calculate_fuel(
+                route["distance_km"],
+                fuel_per_km,
+                fuel_cost_per_liter
+            )
+            fuel_cost = fuel["estimated_fuel_cost"]
+
+        else:
+            fuel_cost = 0
+
+        score = calculate_route_score(
             route["distance_km"],
-            fuel_per_km,
-            fuel_cost_per_liter
+            fuel_cost,
+            risk if risk in risk_order else "INVALID"
         )
 
         ranked_routes.append({
             "name": route.get("name", "Unnamed Route"),
             "distance_km": route["distance_km"],
-            "risk": risk,
-            "fuel_liters": fuel["estimated_fuel_liters"],
-            "fuel_cost": fuel["estimated_fuel_cost"]
+            "fuel_cost": round(fuel_cost, 2),
+            "risk_level": risk,
+            "score": score
         })
 
     ranked_routes.sort(
         key=lambda route: (
-            risk_order[route["risk"]],
-            route["fuel_liters"]
+            risk_order.get(route["risk_level"], 4),
+            route["fuel_cost"]
         )
     )
 
     return ranked_routes
+
+
 def replan_route(current_route, alternative_routes):
     """
     Re-plans the route when the current route becomes unsafe.
@@ -257,6 +304,7 @@ def replan_route(current_route, alternative_routes):
     evaluated_routes = []
 
     for route in alternative_routes:
+
         risk = calculate_route_risk(
             route["distance_km"],
             route["ice_risk"]
@@ -270,7 +318,8 @@ def replan_route(current_route, alternative_routes):
     safer_routes = [
         route
         for route in evaluated_routes
-        if risk_order[route["calculated_risk"]] < risk_order[current_risk]
+        if risk_order.get(route["calculated_risk"], 4)
+        < risk_order.get(current_risk, 4)
     ]
 
     if not safer_routes:
@@ -283,7 +332,7 @@ def replan_route(current_route, alternative_routes):
     new_route = min(
         safer_routes,
         key=lambda route: (
-            risk_order[route["calculated_risk"]],
+            risk_order.get(route["calculated_risk"], 4),
             route["distance_km"]
         )
     )
@@ -293,67 +342,8 @@ def replan_route(current_route, alternative_routes):
         "recommendation": "Current route replaced with a safer alternative.",
         "route": new_route
     }
-def recommend_best_route(routes):
-    """
-    Selects the safest route from multiple candidate routes.
-
-    This is a prototype rule-based selection,
-    not a real scientific navigation algorithm.
-    """
-
-    if not routes:
-        return {
-            "status": "INVALID",
-            "recommendation": "No candidate routes provided."
-        }
-
-    safe_routes = []
-
-    for route in routes:
-        risk = calculate_route_risk(
-            route["distance_km"],
-            route["ice_risk"]
-        )
-
-        if risk == "SAFE":
-            safe_routes.append(route)
-
-    if not safe_routes:
-        return {
-            "status": "DANGER",
-            "recommendation": "No safe candidate route found."
-        }
-
-    best_route = min(
-        safe_routes,
-        key=lambda route: route["distance_km"]
-    )
-
-    return {
-        "status": "SAFE",
-        "recommendation": "Safest candidate route selected.",
-        "route": best_route
-    }
 
 
-if __name__ == "__main__":
-    test_cases = [
-        (3, "HIGH"),
-        (10, "MEDIUM"),
-        (20, "LOW"),
-        (50, "LOW")
-    ]
-
-    for distance, ice_risk in test_cases:
-        result = recommend_route(distance, ice_risk)
-
-        print(
-            f"Distance: {distance} km | "
-            f"Ice Risk: {ice_risk} | "
-            f"Status: {result['status']} | "
-            f"Recommendation: {result['recommendation']} | "
-            f"Reason: {result['reason']}"
-        )
 def calculate_route_score(distance_km, fuel_cost, risk_level):
     """
     Calculate a simple explainable route score.
@@ -385,41 +375,22 @@ def calculate_route_score(distance_km, fuel_cost, risk_level):
 
     return distance_km + fuel_cost + risk_penalty[risk_level]
 
-def rank_routes(routes):
-    """
-    Rank candidate routes from best to worst.
-
-    Lower route score = better route.
-    """
-
-    if not routes:
-        raise ValueError("At least one route is required.")
-
-    ranked_routes = []
-
-    for route in routes:
-        score = calculate_route_score(
-            route["distance_km"],
-            route["fuel_cost"],
-            route["risk_level"]
-        )
-
-        ranked_routes.append({
-            "name": route["name"],
-            "distance_km": route["distance_km"],
-            "fuel_cost": route["fuel_cost"],
-            "risk_level": route["risk_level"],
-            "score": score
-        })
-
-    ranked_routes.sort(key=lambda route: route["score"])
-
-    return ranked_routes
 
 def recommend_best_route(routes):
     """
-    Select the safest route first.
-    Fuel cost is considered only when routes have the same risk level.
+    Selects the best available route.
+
+    Safety priority:
+    LOW > MEDIUM > HIGH > CRITICAL
+
+    Fuel cost is considered when routes have
+    the same risk level.
+
+    If no LOW-risk route exists, the best MEDIUM-risk
+    route is selected instead of returning NO_SAFE_ROUTE.
+
+    This is a prototype rule-based selection,
+    not a real scientific navigation algorithm.
     """
 
     if not routes:
@@ -435,6 +406,7 @@ def recommend_best_route(routes):
     ranked_routes = []
 
     for route in routes:
+
         risk_level = route["risk_level"].strip().upper()
 
         if risk_level not in risk_priority:
@@ -456,6 +428,7 @@ def recommend_best_route(routes):
             "score": score
         })
 
+    # Safety first, fuel second
     ranked_routes.sort(
         key=lambda route: (
             risk_priority[route["risk_level"]],
@@ -463,29 +436,39 @@ def recommend_best_route(routes):
         )
     )
 
-    safe_routes = [
-        route for route in ranked_routes
-        if route["risk_level"] == "LOW"
-    ]
+    best_route = ranked_routes[0]
 
-    if not safe_routes:
-        return {
-            "recommended_route": None,
-            "all_routes": ranked_routes,
-            "status": "NO_SAFE_ROUTE",
-            "message": "No safe route available. Search for an alternative route."
-        }
+    if best_route["risk_level"] == "LOW":
+        status = "SAFE_ROUTE_FOUND"
+        message = "Safest available route selected."
+
+    elif best_route["risk_level"] == "MEDIUM":
+        status = "BEST_AVAILABLE_ROUTE"
+        message = "No low-risk route available. Best available route selected."
+
+    elif best_route["risk_level"] == "HIGH":
+        status = "HIGH_RISK_ROUTE"
+        message = "Only high-risk routes are available. Route selected with caution."
+
+    else:
+        status = "CRITICAL_RISK"
+        message = "Critical-risk route detected. Alternative navigation should be considered."
 
     return {
-        "recommended_route": safe_routes[0],
+        "recommended_route": best_route,
         "all_routes": ranked_routes,
-        "status": "SAFE_ROUTE_FOUND",
-        "message": "Safest available route selected.",
-        "reason": f"Route {safe_routes[0]['name']} selected because it has the lowest risk level ({safe_routes[0]['risk_level']})."
+        "status": status,
+        "message": message,
+        "reason": (
+            f"Route {best_route['name']} selected because it has the "
+            f"lowest available risk level ({best_route['risk_level']})."
+        )
     }
+
+
 def compare_safety_and_fuel(route):
     """
-    Explain the trade-off between route safety and fuel usage.
+    Explains the trade-off between route safety and fuel usage.
     """
 
     risk_level = route["risk_level"].strip().upper()
@@ -493,13 +476,16 @@ def compare_safety_and_fuel(route):
 
     if risk_level in ["HIGH", "CRITICAL"]:
         safety_priority = "HIGH"
+
     elif risk_level == "MEDIUM":
         safety_priority = "MEDIUM"
+
     else:
         safety_priority = "LOW"
 
     if fuel_cost <= 20:
         fuel_priority = "FUEL-EFFICIENT"
+
     else:
         fuel_priority = "FUEL-COSTLY"
 
@@ -508,5 +494,36 @@ def compare_safety_and_fuel(route):
         "safety_priority": safety_priority,
         "fuel_priority": fuel_priority
     }
+
+
 def replan_routes(routes):
- return recommend_best_route(routes)
+    """
+    Selects the best available route from candidate routes.
+    """
+
+    return recommend_best_route(routes)
+
+
+if __name__ == "__main__":
+
+    test_cases = [
+        (3, "HIGH"),
+        (10, "MEDIUM"),
+        (20, "LOW"),
+        (50, "LOW")
+    ]
+
+    for distance, ice_risk in test_cases:
+
+        result = recommend_route(
+            distance,
+            ice_risk
+        )
+
+        print(
+            f"Distance: {distance} km | "
+            f"Ice Risk: {ice_risk} | "
+            f"Status: {result['status']} | "
+            f"Recommendation: {result['recommendation']} | "
+            f"Reason: {result['reason']}"
+        )

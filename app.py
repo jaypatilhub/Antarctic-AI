@@ -1,3 +1,4 @@
+
 import streamlit as st
 from streamlit_folium import st_folium
 from math import radians, sin, cos, sqrt, atan2
@@ -556,7 +557,7 @@ st.write(
 
 
 # =========================================================
-# ROUTE DATA FOR ADVANCED RANKING
+# STANDARD CANDIDATE ROUTE DATA
 # =========================================================
 
 candidate_routes = [
@@ -565,10 +566,11 @@ candidate_routes = [
         "name": "Route A",
         "distance_km": route_a_distance,
         "risk_level": route_ice_risk,
-        "fuel_cost": (
+        "fuel_cost": round(
             route_a_distance
             * fuel_per_km
-            * fuel_cost_per_liter
+            * fuel_cost_per_liter,
+            2
         )
     },
 
@@ -576,10 +578,11 @@ candidate_routes = [
         "name": "Route B",
         "distance_km": route_b_distance,
         "risk_level": route_ice_risk,
-        "fuel_cost": (
+        "fuel_cost": round(
             route_b_distance
             * fuel_per_km
-            * fuel_cost_per_liter
+            * fuel_cost_per_liter,
+            2
         )
     },
 
@@ -587,10 +590,11 @@ candidate_routes = [
         "name": "Route C",
         "distance_km": route_c_distance,
         "risk_level": route_ice_risk,
-        "fuel_cost": (
+        "fuel_cost": round(
             route_c_distance
             * fuel_per_km
-            * fuel_cost_per_liter
+            * fuel_cost_per_liter,
+            2
         )
     }
 
@@ -814,9 +818,11 @@ if st.button(
     "🧭 Directions — Open Large Navigation Map",
     use_container_width=True
 ):
+
     st.session_state.directions_mode = True
 
 try:
+
     antarctic_map = create_antarctic_map(
         start_name=start_location,
         start_coords=(start_lat, start_lon),
@@ -825,10 +831,17 @@ try:
     )
 
     if st.session_state.directions_mode:
-        st.subheader("🧭 Navigation Directions View")
 
-        if st.button("← Back to Normal Map View"):
+        st.subheader(
+            "🧭 Navigation Directions View"
+        )
+
+        if st.button(
+            "← Back to Normal Map View"
+        ):
+
             st.session_state.directions_mode = False
+
             st.rerun()
 
         st_folium(
@@ -839,6 +852,7 @@ try:
         )
 
     else:
+
         st_folium(
             antarctic_map,
             width=1200,
@@ -847,7 +861,10 @@ try:
         )
 
 except Exception as e:
-    st.error(f"Map loading error: {e}")
+
+    st.error(
+        f"Map loading error: {e}"
+    )
 
 
 # =========================================================
@@ -863,15 +880,15 @@ st.write(
 )
 
 st.write(
-    "✅ M3 — Data Processing Module"
+    "✅ M3 — Map & Navigation Module"
 )
 
 st.write(
-    "✅ M4 — Risk Analysis Module"
+    "✅ M4 — Risk & Safety Intelligence Module"
 )
 
 st.write(
-    "✅ M5 — Route Recommendation Module"
+    "✅ M6 — Smart Map Information Layer"
 )
 
 st.write(
