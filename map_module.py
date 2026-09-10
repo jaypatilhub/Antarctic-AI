@@ -298,7 +298,63 @@ def create_antarctic_map():
         tooltip="🚢 OUR RESEARCH SHIP",
         icon=ship_icon
     ).add_to(map_obj)
+    # =========================================================
+    # WEATHER INFORMATION
+    # =========================================================
 
+    weather_popup = """
+    <div style="font-family:Arial; width:240px;">
+
+        <h4 style="color:#0088aa;">
+            🌦️ WEATHER INFORMATION
+        </h4>
+
+        <b>Data Status:</b> 🟡 DEMO / SIMULATION<br>
+        <b>Temperature:</b> -8°C<br>
+        <b>Wind Speed:</b> 18 knots<br>
+        <b>Wind Direction:</b> 074°<br>
+        <b>Visibility:</b> 6 km<br>
+        <b>Condition:</b> Partly Cloudy
+
+    </div>
+    """
+
+    folium.Marker(
+        location=[-68, 25],
+        popup=folium.Popup(
+            weather_popup,
+            max_width=300
+        ),
+        tooltip="🌦️ WEATHER INFORMATION"
+    ).add_to(map_obj)
+        # =========================================================
+    # OCEAN CURRENT INFORMATION
+    # =========================================================
+
+    ocean_popup = """
+    <div style="font-family:Arial; width:240px;">
+
+        <h4 style="color:#0088aa;">
+            🌊 OCEAN CURRENT INFORMATION
+        </h4>
+
+        <b>Data Status:</b> 🟡 DEMO / SIMULATION<br>
+        <b>Current Speed:</b> 0.8 m/s<br>
+        <b>Current Direction:</b> 135°<br>
+        <b>Flow:</b> South-East<br>
+        <b>Navigation Impact:</b> Moderate
+
+    </div>
+    """
+
+    folium.Marker(
+        location=[-69, 30],
+        popup=folium.Popup(
+            ocean_popup,
+            max_width=300
+        ),
+        tooltip="🌊 OCEAN CURRENT INFORMATION"
+    ).add_to(map_obj)
     # =========================================================
     # AI MONITORING RANGE
     # =========================================================
@@ -486,7 +542,16 @@ def create_antarctic_map():
     # =========================================================
     # ROUTE A — HIGH RISK
     # =========================================================
-
+    route_a_popup = """
+    <div style="font-family:Arial; width:240px;">
+        <h4 style="color:#d00000;">🔴 ROUTE A — HIGH RISK</h4>
+        <b>Route Status:</b> High Risk<br>
+        <b>Navigation:</b> Use with caution<br>
+        <b>Sea-Ice:</b> Higher concentration area<br>
+        <b>Decision:</b> Consider safer route option<br>
+        <b>Source:</b> Existing project route assessment
+    </div>
+    """
     folium.PolyLine(
         locations=[
             [-70, 20],
@@ -498,12 +563,22 @@ def create_antarctic_map():
         color="#ff2222",
         weight=5,
         opacity=0.85,
-        tooltip="🔴 Route A — HIGH RISK"
+        tooltip="🔴 Route A — HIGH RISK",
+        popup=folium.Popup(route_a_popup, max_width=300),
     ).add_to(route_layer)
     # =========================================================
     # ROUTE B — MEDIUM RISK
     # =========================================================
-
+    route_b_popup = """
+    <div style="font-family:Arial; width:240px;">
+        <h4 style="color:#cc8800;">🟡 ROUTE B — MEDIUM RISK</h4>
+        <b>Route Status:</b> Medium Risk<br>
+        <b>Navigation:</b> Use with caution<br>
+        <b>Sea-Ice:</b> Moderate conditions<br>
+        <b>Decision:</b> Monitor conditions during navigation<br>
+        <b>Source:</b> Existing project route assessment
+    </div>
+    """
     folium.PolyLine(
         locations=[
             [-70, 20],
@@ -515,12 +590,22 @@ def create_antarctic_map():
         color="#ffaa00",
         weight=5,
         opacity=0.85,
-        tooltip="🟡 Route B — MEDIUM RISK | Use with Caution"
+        tooltip="🟡 Route B — MEDIUM RISK | Use with Caution",
+        popup=folium.Popup(route_b_popup, max_width=300),
     ).add_to(route_layer)
     # =========================================================
     # ROUTE C — LOW RISK
     # =========================================================
-
+    route_c_popup = """
+    <div style="font-family:Arial; width:240px;">
+        <h4 style="color:#008844;">🟢 ROUTE C — LOW RISK</h4>
+        <b>Route Status:</b> Low Risk<br>
+        <b>Navigation:</b> Safer option<br>
+        <b>Sea-Ice:</b> Lower concentration area<br>
+        <b>Decision:</b> Preferred safer route option<br>
+        <b>Source:</b> Existing project route assessment
+    </div>
+    """
     folium.PolyLine(
         locations=[
             [-70, 20],
@@ -532,7 +617,8 @@ def create_antarctic_map():
         color="#00cc55",
         weight=5,
         opacity=0.85,
-        tooltip="🟢 Route C — LOW RISK | Safer Option"
+        tooltip="🟢 Route C — LOW RISK | Safer Option",
+        popup=folium.Popup(route_c_popup, max_width=300),
     ).add_to(route_layer)
 
     # =========================================================
@@ -584,6 +670,7 @@ def create_antarctic_map():
         Size: Large<br>
         Movement: South-East<br>
         Risk: <b style="color:red;">HIGH</b>
+        <b>⚠️ WARNING:</b> High-risk iceberg detected<br>
         <br><b>Navigation Warning:</b> Maintain safe distance
         """,
         tooltip="🧊 ICEBERG 01 — HIGH RISK",
