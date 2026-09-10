@@ -1,4 +1,4 @@
-﻿from ml_model import get_sea_ice_prediction
+from ml_model import get_sea_ice_prediction
 from ml_prediction import predict_iceberg_trajectory, load_data
 
 
