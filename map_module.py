@@ -345,8 +345,8 @@ def create_antarctic_map():
 
     folium.Polygon(
         locations=low_ice_zone,
-        popup="🟢 Low Sea-Ice Concentration",
-        tooltip="🟢 LOW ICE",
+        popup="<b>🟢 LOW SEA-ICE</b><br>Low sea-ice concentration — safer navigation conditions",
+        tooltip="🟢 LOW SEA-ICE — SAFER CONDITIONS",
         color="#00ff66",
         weight=2,
         fill=True,
@@ -369,8 +369,8 @@ def create_antarctic_map():
 
     folium.Polygon(
         locations=medium_ice_zone,
-        popup="🟡 Medium Sea-Ice Concentration",
-        tooltip="🟡 MEDIUM ICE",
+        popup="<b>🟡 MEDIUM SEA-ICE</b><br>Moderate sea-ice concentration — navigation requires caution",
+        tooltip="🟡 MEDIUM SEA-ICE — CAUTION",
         color="#ffaa00",
         weight=2,
         fill=True,
@@ -393,8 +393,8 @@ def create_antarctic_map():
 
     folium.Polygon(
         locations=heavy_ice_zone,
-        popup="🔴 Heavy Sea-Ice Concentration",
-        tooltip="🔴 HEAVY ICE",
+        popup="<b>🔴 HEAVY SEA-ICE</b><br>High sea-ice concentration — navigation requires high caution",
+        tooltip="🔴 HEAVY SEA-ICE — HIGH CAUTION",
         color="#ff2222",
         weight=2,
         fill=True,
@@ -498,7 +498,7 @@ def create_antarctic_map():
         color="#ff2222",
         weight=5,
         opacity=0.85,
-        tooltip="Route A — HIGH RISK"
+        tooltip="🔴 Route A — HIGH RISK"
     ).add_to(route_layer)
     # =========================================================
     # ROUTE B — MEDIUM RISK
@@ -515,7 +515,7 @@ def create_antarctic_map():
         color="#ffaa00",
         weight=5,
         opacity=0.85,
-        tooltip="Route B — MEDIUM RISK"
+        tooltip="🟡 Route B — MEDIUM RISK | Use with Caution"
     ).add_to(route_layer)
     # =========================================================
     # ROUTE C — LOW RISK
@@ -532,7 +532,7 @@ def create_antarctic_map():
         color="#00cc55",
         weight=5,
         opacity=0.85,
-        tooltip="Route C — LOW RISK"
+        tooltip="🟢 Route C — LOW RISK | Safer Option"
     ).add_to(route_layer)
 
     # =========================================================
@@ -551,7 +551,7 @@ def create_antarctic_map():
         weight=4,
         opacity=0.9,
         dash_array="10, 8",
-        tooltip="🛰️ AI RECOMMENDED ROUTE"
+        tooltip="🛰️ AI RECOMMENDED ROUTE | Safest & Fuel-Efficient"
     ).add_to(map_obj)
 
     # =========================================================
@@ -571,6 +571,7 @@ def create_antarctic_map():
         """
     )
 
+
     # =========================================================
     # ICEBERG 01
     # =========================================================
@@ -583,6 +584,7 @@ def create_antarctic_map():
         Size: Large<br>
         Movement: South-East<br>
         Risk: <b style="color:red;">HIGH</b>
+        <br><b>Navigation Warning:</b> Maintain safe distance
         """,
         tooltip="🧊 ICEBERG 01 — HIGH RISK",
         icon=iceberg_icon
@@ -594,39 +596,39 @@ def create_antarctic_map():
             [-70.5, 26],
             [-70, 27]
         ],
-        color="#ff2222",
+        color="#00cc55",
         weight=4,
-        tooltip="➡️ Iceberg 01 Movement"
+        tooltip="🧊 Iceberg 01 Movement Path — South-East"
     ).add_to(map_obj)
 
     # =========================================================
     # ICEBERG 02
-    # =========================================================
+# =========================================================
 
     folium.Marker(
-        location=[-73, 15],
-        popup="""
-        <b>🧊 ICEBERG 02</b><br>
-        Location: -73°, 15°<br>
-        Size: Medium<br>
-        Movement: East<br>
-        Risk: <b style="color:orange;">MEDIUM</b>
-        """,
-        tooltip="🧊 ICEBERG 02 — MEDIUM RISK",
-        icon=iceberg_icon
-    ).add_to(map_obj)
+    location=[-73, 15],
+    popup="""
+    <b>🧊 ICEBERG 02</b><br>
+    Location: -73°, 15°<br>
+    Size: Medium<br>
+    Movement: East<br>
+    Risk: <b style="color:orange;">MEDIUM</b><br>
+    <b>Navigation Warning:</b> Monitor iceberg movement
+    """,
+    tooltip="🧊 ICEBERG 02 — MEDIUM RISK",
+    icon=iceberg_icon
+).add_to(map_obj)
 
     folium.PolyLine(
-        locations=[
-            [-73, 15],
-            [-73, 17],
-            [-73, 19]
-        ],
-        color="#ffaa00",
-        weight=4,
-        tooltip="➡️ Iceberg 02 Movement"
-    ).add_to(map_obj)
-
+    locations=[
+        [-73, 15],
+        [-73, 17],
+        [-73, 19]
+    ],
+    color="#ffaa00",
+    weight=4,
+    tooltip="🧊 Iceberg 02 Movement Path — East"
+).add_to(map_obj)
     # =========================================================
     # ICEBERG 03
     # =========================================================
@@ -638,7 +640,8 @@ def create_antarctic_map():
         Location: -75°, 28°<br>
         Size: Large<br>
         Movement: South<br>
-        Risk: <b style="color:red;">HIGH</b>
+        Risk: <b style="color:red;">HIGH</b><br>
+        <b>Navigation Warning:</b> Maintain safe distance
         """,
         tooltip="🧊 ICEBERG 03 — HIGH RISK",
         icon=iceberg_icon
@@ -652,7 +655,7 @@ def create_antarctic_map():
         ],
         color="#ff2222",
         weight=4,
-        tooltip="⬇️ Iceberg 03 Movement"
+        tooltip="🧊 Iceberg 03 Movement Path — South"
     ).add_to(map_obj)
 
     # =========================================================
