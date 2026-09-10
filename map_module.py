@@ -43,14 +43,14 @@ def create_antarctic_map(
         letter-spacing: 2px;
         box-shadow: 0 0 15px #00eaff;
     ">
-        🌍 ANTARCTIC AI — GLOBAL VESSEL MONITOR
+        ANTARCTIC AI — GLOBAL VESSEL MONITOR
     </div>
     """
 
     map_obj.get_root().html.add_child(folium.Element(title_html))
 
     # =========================================================
-    # LEFT PANEL
+    # LEFT AI STATUS PANEL
     # =========================================================
 
     info_panel = """
@@ -74,17 +74,19 @@ def create_antarctic_map(
             font-weight:bold;
             margin-bottom:10px;
         ">
-            🧠 AI STATUS
+            AI STATUS
         </div>
 
         <div>🟢 SYSTEM: ONLINE</div>
         <div>🟢 VESSEL MONITORING: ACTIVE</div>
         <div>🟢 ICE ANALYSIS: ACTIVE</div>
+        <div>🟢 WEATHER MONITORING: ACTIVE</div>
+        <div>🟢 OCEAN MONITORING: ACTIVE</div>
 
         <hr style="border-color:#24404a;">
 
         <div style="color:#00eaff;">
-            🚢 GLOBAL VESSELS
+            GLOBAL VESSELS
         </div>
 
         <div>Tracked Vessels: 06</div>
@@ -94,7 +96,7 @@ def create_antarctic_map(
         <hr style="border-color:#24404a;">
 
         <div style="color:#00eaff;">
-            🧊 ANTARCTIC DATA
+            ANTARCTIC DATA
         </div>
 
         <div>Icebergs: 03</div>
@@ -105,7 +107,7 @@ def create_antarctic_map(
     map_obj.get_root().html.add_child(folium.Element(info_panel))
 
     # =========================================================
-    # RIGHT LEGEND
+    # RIGHT MAP LEGEND
     # =========================================================
 
     legend_html = """
@@ -114,7 +116,7 @@ def create_antarctic_map(
         top: 80px;
         right: 20px;
         z-index: 9999;
-        width: 190px;
+        width: 205px;
         background: rgba(5, 15, 25, 0.95);
         color: white;
         padding: 15px;
@@ -129,11 +131,11 @@ def create_antarctic_map(
             font-weight:bold;
             margin-bottom:10px;
         ">
-            🗺️ MAP LEGEND
+            MAP LEGEND
         </div>
 
         <div>🚢 Our Ship</div>
-        <div>🚢 Other Vessel</div>
+        <div>⛴ Other Vessel</div>
         <div>🧊 Iceberg</div>
         <div>🟢 Low Ice</div>
         <div>🟡 Medium Ice</div>
@@ -141,8 +143,11 @@ def create_antarctic_map(
         <div>🔴 Route A — HIGH RISK</div>
         <div>🟡 Route B — MEDIUM RISK</div>
         <div>🟢 Route C — LOW RISK</div>
+        <div>🔵 AI Recommended Route</div>
         <div>⚠️ AI Risk Zone</div>
         <div>🏁 Destination</div>
+        <div>🌦️ Weather</div>
+        <div>🌊 Ocean Current</div>
     </div>
     """
 
@@ -219,6 +224,7 @@ def create_antarctic_map(
     ]
 
     for vessel in vessels:
+
         popup_html = f"""
         <div style="font-family:Arial; width:230px;">
             <h4 style="color:#0088aa;">
@@ -243,7 +249,7 @@ def create_antarctic_map(
         ).add_to(map_obj)
 
     # =========================================================
-    # OUR RESEARCH SHIP — SELECTED START POINT
+    # OUR RESEARCH SHIP
     # =========================================================
 
     ship_icon = folium.DivIcon(
@@ -263,7 +269,7 @@ def create_antarctic_map(
     folium.Marker(
         location=start_point,
         popup=f"""
-        <div style="font-family:Arial; width:230px;">
+        <div style="font-family:Arial; width:250px;">
             <h4 style="color:#0088aa;">
                 🚢 OUR RESEARCH SHIP
             </h4>
@@ -284,17 +290,18 @@ def create_antarctic_map(
     # =========================================================
 
     for radius, weight in [(150000, 2), (300000, 1), (450000, 1)]:
+
         folium.Circle(
             location=start_point,
             radius=radius,
             color="#00eaff",
             weight=weight,
             fill=False,
-            tooltip="🛰️ AI Monitoring Range" if radius == 150000 else None
+            tooltip="AI Monitoring Range" if radius == 150000 else None
         ).add_to(map_obj)
 
     # =========================================================
-    # EXISTING SEA-ICE ZONES
+    # SEA-ICE ZONES
     # =========================================================
 
     low_ice_zone = [
@@ -345,16 +352,111 @@ def create_antarctic_map(
         fill_opacity=0.30
     ).add_to(map_obj)
 
+    # =========================================================
+    # AI HIGH RISK ZONE
+    # =========================================================
+
     folium.Circle(
         location=[-72, 20],
         radius=500000,
-        popup="⚠️ AI High Risk Zone",
+        popup="""
+        <b>⚠️ AI HIGH RISK ZONE</b><br><br>
+        <b>Risk Factors:</b><br>
+        • Heavy Sea-Ice<br>
+        • Iceberg Activity<br>
+        • Environmental Conditions<br><br>
+        <b>Navigation Advice:</b><br>
+        Prefer safer route alternatives.
+        """,
         tooltip="⚠️ AI HIGH RISK AREA",
         color="#ff0033",
         weight=2,
         fill=True,
         fill_color="#ff0033",
         fill_opacity=0.12
+    ).add_to(map_obj)
+
+    # =========================================================
+    # WEATHER INFORMATION — M6
+    # =========================================================
+
+    weather_icon = folium.DivIcon(
+        html="""
+        <div style="
+            font-size:25px;
+            text-align:center;
+            width:40px;
+            height:40px;
+        ">
+            🌦️
+        </div>
+        """
+    )
+
+    weather_popup = """
+    <div style="font-family:Arial; width:250px;">
+        <h4 style="color:#0088aa;">🌦️ WEATHER INFORMATION</h4>
+
+        <b>Data Status:</b>
+        <span style="color:#d97706;">DEMO / SIMULATION</span><br><br>
+
+        <b>Temperature:</b> -8°C<br>
+        <b>Wind Speed:</b> 18 knots<br>
+        <b>Wind Direction:</b> 074°<br>
+        <b>Visibility:</b> 6 km<br>
+        <b>Condition:</b> Partly Cloudy<br><br>
+
+        <b>Navigation Impact:</b>
+        Moderate
+    </div>
+    """
+
+    folium.Marker(
+        location=[-68, 25],
+        popup=folium.Popup(weather_popup, max_width=320),
+        tooltip="🌦️ Weather Information",
+        icon=weather_icon
+    ).add_to(map_obj)
+
+    # =========================================================
+    # OCEAN CURRENT INFORMATION — M6
+    # =========================================================
+
+    ocean_icon = folium.DivIcon(
+        html="""
+        <div style="
+            font-size:25px;
+            text-align:center;
+            width:40px;
+            height:40px;
+        ">
+            🌊
+        </div>
+        """
+    )
+
+    ocean_popup = """
+    <div style="font-family:Arial; width:250px;">
+        <h4 style="color:#0088aa;">🌊 OCEAN CURRENT</h4>
+
+        <b>Data Status:</b>
+        <span style="color:#d97706;">DEMO / SIMULATION</span><br><br>
+
+        <b>Current Speed:</b> 0.8 m/s<br>
+        <b>Current Direction:</b> 135°<br>
+        <b>Flow:</b> South-East<br>
+        <b>Navigation Impact:</b> Moderate<br><br>
+
+        Ocean conditions are considered
+        during route analysis.
+    </div>
+    """
+
+    folium.Marker(
+        location=[-69, 30],
+        popup=folium.Popup(ocean_popup, max_width=320),
+        tooltip="🌊 Ocean Current Information",
+        icon=ocean_icon
     ).add_to(map_obj)
 
     # =========================================================
@@ -419,7 +521,7 @@ def create_antarctic_map(
     ).add_to(map_obj)
 
     # =========================================================
-    # BASIC ROUTE PREVIEW STRUCTURE
+    # ROUTE CALCULATION
     # =========================================================
 
     lat_difference = destination_lat - start_lat
@@ -439,44 +541,125 @@ def create_antarctic_map(
             destination_point
         ]
 
-    route_layer = folium.FeatureGroup(name="🗺️ Routes")
+    # =========================================================
+    # ROUTES
+    # =========================================================
+
+    route_layer = folium.FeatureGroup(
+        name="🗺️ Routes"
+    )
+
     route_layer.add_to(map_obj)
 
+    route_a_points = route_points(0.7)
+    route_b_points = route_points(0.0)
+    route_c_points = route_points(-0.7)
+    recommended_route_points = route_points(-0.25)
+
+    # ROUTE A
+    route_a_popup = """
+    <div style="font-family:Arial; width:250px;">
+        <h4 style="color:#cc2222;">🔴 ROUTE A — HIGH RISK</h4>
+
+        <b>Risk Level:</b> HIGH<br>
+        <b>Sea-Ice:</b> Heavy<br>
+        <b>Iceberg Exposure:</b> High<br>
+        <b>Weather Impact:</b> Moderate<br>
+        <b>Navigation:</b> Not Preferred<br><br>
+
+        AI recommends checking safer alternatives.
+    </div>
+    """
+
     folium.PolyLine(
-        locations=route_points(0.7),
+        locations=route_a_points,
         color="#ff2222",
         weight=5,
         opacity=0.85,
-        tooltip="Route A — HIGH RISK"
+        tooltip="Route A — HIGH RISK",
+        popup=folium.Popup(route_a_popup, max_width=320)
     ).add_to(route_layer)
 
+    # ROUTE B
+    route_b_popup = """
+    <div style="font-family:Arial; width:250px;">
+        <h4 style="color:#cc8800;">🟡 ROUTE B — MEDIUM RISK</h4>
+
+        <b>Risk Level:</b> MEDIUM<br>
+        <b>Sea-Ice:</b> Moderate<br>
+        <b>Iceberg Exposure:</b> Medium<br>
+        <b>Weather Impact:</b> Moderate<br>
+        <b>Navigation:</b> Acceptable<br><br>
+
+        Balanced option between safety and distance.
+    </div>
+    """
+
     folium.PolyLine(
-        locations=route_points(0.0),
+        locations=route_b_points,
         color="#ffaa00",
         weight=5,
         opacity=0.85,
-        tooltip="Route B — MEDIUM RISK"
+        tooltip="Route B — MEDIUM RISK",
+        popup=folium.Popup(route_b_popup, max_width=320)
     ).add_to(route_layer)
 
+    # ROUTE C
+    route_c_popup = """
+    <div style="font-family:Arial; width:250px;">
+        <h4 style="color:#008844;">🟢 ROUTE C — LOW RISK</h4>
+
+        <b>Risk Level:</b> LOW<br>
+        <b>Sea-Ice:</b> Lower<br>
+        <b>Iceberg Exposure:</b> Lower<br>
+        <b>Weather Impact:</b> Lower<br>
+        <b>Navigation:</b> Preferred<br><br>
+
+        Safer route option for navigation.
+    </div>
+    """
+
     folium.PolyLine(
-        locations=route_points(-0.7),
+        locations=route_c_points,
         color="#00cc55",
         weight=5,
         opacity=0.85,
-        tooltip="Route C — LOW RISK"
+        tooltip="Route C — LOW RISK",
+        popup=folium.Popup(route_c_popup, max_width=320)
     ).add_to(route_layer)
 
+    # =========================================================
+    # AI RECOMMENDED ROUTE
+    # =========================================================
+
+    ai_route_popup = """
+    <div style="font-family:Arial; width:270px;">
+        <h4 style="color:#0088aa;">🛰️ AI RECOMMENDED ROUTE</h4>
+
+        <b>Recommendation:</b> Preferred<br>
+        <b>Safety Priority:</b> High<br>
+        <b>Ice Risk:</b> Low / Moderate<br>
+        <b>Iceberg Risk:</b> Monitored<br>
+        <b>Weather:</b> Monitored<br>
+        <b>Ocean Conditions:</b> Considered<br><br>
+
+        AI selects the route by balancing
+        safety and navigation efficiency.
+    </div>
+    """
+
     folium.PolyLine(
-        locations=route_points(-0.25),
+        locations=recommended_route_points,
         color="#00eaff",
         weight=4,
         opacity=0.9,
         dash_array="10, 8",
-        tooltip="🛰️ AI RECOMMENDED ROUTE"
+        tooltip="🛰️ AI RECOMMENDED ROUTE",
+        popup=folium.Popup(ai_route_popup, max_width=330)
     ).add_to(map_obj)
 
     # =========================================================
-    # EXISTING ICEBERG MARKERS AND MOVEMENT PATHS
+    # ICEBERG DATA
     # =========================================================
 
     iceberg_icon = folium.DivIcon(
@@ -526,17 +709,46 @@ def create_antarctic_map(
     ]
 
     for iceberg in icebergs:
+
+        iceberg_popup = f"""
+        <div style="font-family:Arial; width:270px;">
+
+            <h4 style="color:#0088aa;">
+                🧊 {iceberg["name"]}
+            </h4>
+
+            <b>Current Location:</b>
+            {iceberg["location"][0]}°,
+            {iceberg["location"][1]}°<br>
+
+            <b>Size:</b> {iceberg["size"]}<br>
+            <b>Predicted Movement:</b> {iceberg["movement"]}<br>
+
+            <b>Risk Level:</b>
+            <span style="color:{iceberg["risk_color"]};">
+                {iceberg["risk"]}
+            </span>
+
+            <hr>
+
+            <b>⚠️ Navigation Warning</b><br>
+
+            This iceberg is being monitored by
+            the navigation system.<br><br>
+
+            <b>Trajectory Status:</b> ACTIVE<br>
+            <b>Collision Monitoring:</b> ACTIVE<br>
+            <b>Route Impact:</b>
+            {"HIGH" if iceberg["risk"] == "HIGH" else "MODERATE"}
+        </div>
+        """
+
         folium.Marker(
             location=iceberg["location"],
-            popup=f"""
-            <b>🧊 {iceberg["name"]}</b><br>
-            Location: {iceberg["location"][0]}°, {iceberg["location"][1]}°<br>
-            Size: {iceberg["size"]}<br>
-            Movement: {iceberg["movement"]}<br>
-            Risk: <b style="color:{iceberg["risk_color"]};">
-                {iceberg["risk"]}
-            </b>
-            """,
+            popup=folium.Popup(
+                iceberg_popup,
+                max_width=340
+            ),
             tooltip=f"🧊 {iceberg['name']} — {iceberg['risk']} RISK",
             icon=iceberg_icon
         ).add_to(map_obj)
@@ -553,6 +765,7 @@ def create_antarctic_map(
     # =========================================================
 
     if start_point != destination_point:
+
         map_obj.fit_bounds(
             [start_point, destination_point],
             padding=(70, 70)
@@ -582,12 +795,24 @@ def create_antarctic_map(
         &nbsp;&nbsp;|&nbsp;&nbsp;
         🧊 ICE MONITORING: ACTIVE
         &nbsp;&nbsp;|&nbsp;&nbsp;
+        🌦️ WEATHER: MONITORED
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        🌊 OCEAN: MONITORED
+        &nbsp;&nbsp;|&nbsp;&nbsp;
         🧭 NAVIGATION: ACTIVE
     </div>
     """
 
-    map_obj.get_root().html.add_child(folium.Element(status_bar))
+    map_obj.get_root().html.add_child(
+        folium.Element(status_bar)
+    )
 
-    folium.LayerControl(collapsed=False).add_to(map_obj)
+    # =========================================================
+    # LAYER CONTROL
+    # =========================================================
+
+    folium.LayerControl(
+        collapsed=False
+    ).add_to(map_obj)
 
     return map_obj
