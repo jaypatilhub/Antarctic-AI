@@ -41,6 +41,17 @@ st.set_page_config(
 
 
 # =========================================================
+# MAP VIEW STATE
+# =========================================================
+
+if "map_expanded" not in st.session_state:
+    st.session_state.map_expanded = False
+
+# Map fullscreen mode
+if "map_fullscreen" not in st.session_state:
+    st.session_state.map_fullscreen = False
+
+# =========================================================
 # DISTANCE CALCULATION
 # =========================================================
 
@@ -121,7 +132,6 @@ with col2:
         key="top_end_location"
     )
 
-
 start_lat, start_lon = locations[start_location]
 end_lat, end_lon = locations[end_location]
 
@@ -193,7 +203,7 @@ st.dataframe(
 
 
 # =========================================================
-# M2 AI PREDICTION
+# AI PREDICTION
 # =========================================================
 
 st.subheader("🤖 AI Prediction")
@@ -207,36 +217,6 @@ try:
     st.success(
         f"Prediction Status: "
         f"{ai_predictions['prediction_status']}"
-    )
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-
-        st.metric(
-            "Model Type",
-            ai_predictions["model_type"]
-        )
-
-    with col2:
-
-        st.metric(
-            "Forecast Days",
-            ai_predictions["forecast_days"]
-        )
-
-    with col3:
-
-        st.metric(
-            "ML Trained",
-            "Yes"
-            if ai_predictions["is_ml_trained"]
-            else "Prototype"
-        )
-
-    st.write(
-        f"**Data Source:** "
-        f"{ai_predictions['data_source']}"
     )
 
     st.subheader("🧊 Sea-Ice Forecast")
@@ -465,75 +445,43 @@ else:
 
 
 # =========================================================
-# AI ROUTE RECOMMENDATION
-# =========================================================
-
-route_result = recommend_route(
-    nearest_distance,
-    route_ice_risk
-)
-
-st.subheader(
-    "🧭 AI Route Recommendation"
-)
-
-st.write(
-    f"**Status:** "
-    f"{route_result['status']}"
-)
-
-st.write(
-    f"**Recommendation:** "
-    f"{route_result['recommendation']}"
-)
-
-if "reason" in route_result:
-
-    st.write(
-        f"**Reason:** "
-        f"{route_result['reason']}"
-    )
-
-
-# =========================================================
 # SELECTED ROUTE RISK
 # =========================================================
+
+st.subheader("🛡️ Selected Route Risk")
 
 selected_route_result = recommend_route(
     selected_distance,
     route_ice_risk
 )
 
-st.subheader(
-    "⚠️ Selected Route Risk"
-)
+col1, col2 = st.columns(2)
 
-st.write(
-    f"**Selected Route:** "
-    f"{selected_route}"
-)
+with col1:
 
-st.write(
-    f"**Safety Status:** "
-    f"{selected_route_result['status']}"
-)
+    st.metric(
+        "Route Risk",
+        selected_route_result["status"]
+    )
 
-st.write(
-    f"**Recommendation:** "
-    f"{selected_route_result['recommendation']}"
-)
-
-if "reason" in selected_route_result:
+with col2:
 
     st.write(
         f"**Reason:** "
         f"{selected_route_result['reason']}"
     )
 
+st.info(
+    f"Recommendation: "
+    f"{selected_route_result['recommendation']}"
+)
+
 
 # =========================================================
 # FUEL ESTIMATION
 # =========================================================
+
+st.subheader("⛽ Fuel Estimate")
 
 fuel_result = calculate_fuel(
     selected_distance,
@@ -541,63 +489,97 @@ fuel_result = calculate_fuel(
     fuel_cost_per_liter
 )
 
-st.subheader(
-    "⛽ Selected Route Fuel Estimate"
+col1, col2 = st.columns(2)
+
+with col1:
+
+    st.metric(
+        "Estimated Fuel",
+        f"{fuel_result['estimated_fuel_liters']:.2f} L"
+    )
+
+with col2:
+
+    st.metric(
+        "Estimated Fuel Cost",
+        f"₹{fuel_result['estimated_fuel_cost']:.2f}"
+    )
+
+
+# =========================================================
+# BUILD ROUTE DATA
+# =========================================================
+
+route_a_fuel = calculate_fuel(
+    route_a_distance,
+    fuel_per_km,
+    fuel_cost_per_liter
 )
 
-st.write(
-    f"**Estimated Fuel:** "
-    f"{fuel_result['estimated_fuel_liters']:.2f} L"
+route_b_fuel = calculate_fuel(
+    route_b_distance,
+    fuel_per_km,
+    fuel_cost_per_liter
 )
 
-st.write(
-    f"**Estimated Fuel Cost:** "
-    f"{fuel_result['estimated_fuel_cost']:.2f}"
+route_c_fuel = calculate_fuel(
+    route_c_distance,
+    fuel_per_km,
+    fuel_cost_per_liter
 )
 
 
 # =========================================================
-# STANDARD CANDIDATE ROUTE DATA
+# PROTOTYPE ROUTE-SPECIFIC RISK
 # =========================================================
 
-candidate_routes = [
+if route_ice_risk == "CRITICAL":
 
+    route_a_risk = "CRITICAL"
+    route_b_risk = "HIGH"
+    route_c_risk = "MEDIUM"
+
+elif route_ice_risk == "HIGH":
+
+    route_a_risk = "HIGH"
+    route_b_risk = "MEDIUM"
+    route_c_risk = "LOW"
+
+elif route_ice_risk == "MEDIUM":
+
+    route_a_risk = "MEDIUM"
+    route_b_risk = "LOW"
+    route_c_risk = "LOW"
+
+else:
+
+    route_a_risk = "LOW"
+    route_b_risk = "LOW"
+    route_c_risk = "LOW"
+
+
+route_data = [
     {
         "name": "Route A",
         "distance_km": route_a_distance,
-        "risk_level": route_ice_risk,
-        "fuel_cost": round(
-            route_a_distance
-            * fuel_per_km
-            * fuel_cost_per_liter,
-            2
-        )
+        "risk_level": route_a_risk,
+        "ice_risk": route_a_risk,
+        "fuel_cost": route_a_fuel["estimated_fuel_cost"]
     },
-
     {
         "name": "Route B",
         "distance_km": route_b_distance,
-        "risk_level": route_ice_risk,
-        "fuel_cost": round(
-            route_b_distance
-            * fuel_per_km
-            * fuel_cost_per_liter,
-            2
-        )
+        "risk_level": route_b_risk,
+        "ice_risk": route_b_risk,
+        "fuel_cost": route_b_fuel["estimated_fuel_cost"]
     },
-
     {
         "name": "Route C",
         "distance_km": route_c_distance,
-        "risk_level": route_ice_risk,
-        "fuel_cost": round(
-            route_c_distance
-            * fuel_per_km
-            * fuel_cost_per_liter,
-            2
-        )
+        "risk_level": route_c_risk,
+        "ice_risk": route_c_risk,
+        "fuel_cost": route_c_fuel["estimated_fuel_cost"]
     }
-
 ]
 
 
@@ -605,221 +587,236 @@ candidate_routes = [
 # SAFETY VS FUEL COMPARISON
 # =========================================================
 
-route_a = candidate_routes[0]
-route_b = candidate_routes[1]
+st.subheader("⚖️ Safety vs Fuel Comparison")
 
-try:
+comparison = compare_safety_fuel(
+    route_data[0],
+    route_data[1],
+    fuel_per_km,
+    fuel_cost_per_liter
+)
 
-    comparison = compare_safety_fuel(
-        {
-            "distance_km": route_a["distance_km"],
-            "ice_risk": route_ice_risk
-        },
-        {
-            "distance_km": route_b["distance_km"],
-            "ice_risk": route_ice_risk
-        },
-        fuel_per_km,
-        fuel_cost_per_liter
-    )
+comparison_table = [
+    {
+        "Route": "Route A",
+        "Risk": comparison["route_a_risk"],
+        "Fuel (L)": comparison["route_a_fuel_liters"],
+        "Fuel Cost": comparison["route_a_fuel_cost"]
+    },
+    {
+        "Route": "Route B",
+        "Risk": comparison["route_b_risk"],
+        "Fuel (L)": comparison["route_b_fuel_liters"],
+        "Fuel Cost": comparison["route_b_fuel_cost"]
+    }
+]
 
-    st.subheader(
-        "⚖️ Safety vs Fuel Comparison"
-    )
+st.dataframe(
+    comparison_table,
+    width="stretch"
+)
 
-    st.write(
-        f"**Route A:** "
-        f"{comparison['route_a_risk']} | "
-        f"{comparison['route_a_fuel_liters']:.2f} L"
-    )
-
-    st.write(
-        f"**Route B:** "
-        f"{comparison['route_b_risk']} | "
-        f"{comparison['route_b_fuel_liters']:.2f} L"
-    )
-
-    st.success(
-        f"Recommended: "
-        f"{comparison['recommended_route']}"
-    )
-
-except Exception as e:
-
-    st.warning(
-        f"Safety/Fuel comparison unavailable: {e}"
-    )
+st.info(
+    f"Safety vs Fuel Recommendation: "
+    f"{comparison['recommended_route']}"
+)
 
 
 # =========================================================
 # ROUTE RANKING
 # =========================================================
 
-try:
+st.subheader("🏆 Route Ranking")
 
-    ranked_routes = rank_routes(
-        candidate_routes
+ranked_routes = rank_routes(
+    route_data,
+    fuel_per_km,
+    fuel_cost_per_liter
+)
+
+ranking_table = []
+
+for index, route in enumerate(ranked_routes, start=1):
+
+    ranking_table.append(
+        {
+            "Rank": index,
+            "Route": route["name"],
+            "Distance (km)": round(
+                route["distance_km"],
+                2
+            ),
+            "Risk": route["risk_level"],
+            "Fuel Cost": round(
+                route["fuel_cost"],
+                2
+            ),
+            "Score": round(
+                route["score"],
+                2
+            )
+        }
     )
 
-    st.subheader(
-        "🏆 Route Ranking"
-    )
-
-    for route in ranked_routes:
-
-        st.write(
-            f"**{route['name']}** | "
-            f"Risk: {route['risk_level']} | "
-            f"Fuel Cost: "
-            f"{route['fuel_cost']:.2f} | "
-            f"Score: "
-            f"{route['score']:.2f}"
-        )
-
-except Exception as e:
-
-    st.error(
-        f"Route ranking error: {e}"
-    )
-
-    ranked_routes = []
+st.dataframe(
+    ranking_table,
+    width="stretch"
+)
 
 
 # =========================================================
-# BEST ROUTE RECOMMENDATION
+# SAFE ROUTE RECOMMENDATION
 # =========================================================
 
-try:
+st.subheader("🛡️ Safe Route Recommendation")
 
-    best_route_result = recommend_best_route(
-        candidate_routes
-    )
+best_route_result = recommend_best_route(
+    route_data
+)
 
-    st.subheader(
-        "🧭 Best Route Recommendation"
-    )
+best_route = best_route_result[
+    "recommended_route"
+]
 
-    st.write(
-        f"**Status:** "
-        f"{best_route_result['status']}"
-    )
+st.success(
+    f"Best Route: {best_route['name']}"
+)
 
-    st.write(
-        f"**Recommendation:** "
-        f"{best_route_result['message']}"
-    )
+st.write(
+    f"**Risk:** {best_route['risk_level']}"
+)
 
-    if best_route_result.get(
-        "recommended_route"
-    ):
+st.write(
+    f"**Distance:** "
+    f"{best_route['distance_km']:.2f} km"
+)
 
-        best = best_route_result[
-            "recommended_route"
-        ]
+st.write(
+    f"**Fuel Cost:** "
+    f"₹{best_route['fuel_cost']:.2f}"
+)
 
-        st.success(
-            f"Selected Best Route: "
-            f"{best['name']} | "
-            f"Risk: {best['risk_level']} | "
-            f"Fuel Cost: "
-            f"{best['fuel_cost']:.2f}"
-        )
-
-    if best_route_result.get("reason"):
-
-        st.info(
-            f"Reason: "
-            f"{best_route_result['reason']}"
-        )
-
-except Exception as e:
-
-    st.error(
-        f"Best route error: {e}"
-    )
+st.info(
+    f"{best_route_result['message']} "
+    f"{best_route_result['reason']}"
+)
 
 
 # =========================================================
 # DYNAMIC RE-ROUTING
 # =========================================================
 
-current_route = {
+st.subheader("🔄 Dynamic Re-Routing")
+
+current_route = next(
+    route
+    for route in route_data
+    if route["name"] == selected_route
+)
+
+current_route_data = {
     "name": selected_route,
     "distance_km": selected_distance,
-    "ice_risk": route_ice_risk
+    "risk_level": current_route["risk_level"],
+    "ice_risk": current_route["ice_risk"],
+    "fuel_cost": fuel_result["estimated_fuel_cost"]
 }
 
 alternative_routes = [
-
-    {
-        "name": route["name"],
-        "distance_km": route["distance_km"],
-        "ice_risk": route_ice_risk
-    }
-
-    for route in candidate_routes
-
+    route
+    for route in route_data
     if route["name"] != selected_route
-
 ]
 
-
-try:
-
-    replan_result = replan_route(
-        current_route,
-        alternative_routes
-    )
-
-    st.subheader(
-        "🔄 Dynamic Re-Routing"
-    )
-
-    st.write(
-        f"**Status:** "
-        f"{replan_result['status']}"
-    )
-
-    st.write(
-        f"**Recommendation:** "
-        f"{replan_result['recommendation']}"
-    )
-
-    if replan_result.get("route"):
-
-        st.success(
-            f"Alternative Route: "
-            f"{replan_result['route']['name']} | "
-            f"{replan_result['route']['distance_km']:.2f} km"
-        )
-
-except Exception as e:
-
-    st.error(
-        f"Dynamic re-routing error: {e}"
-    )
-
-
-# =========================================================
-# ANTARCTIC MAP + DIRECTIONS
-# =========================================================
-
-st.subheader("🌍 Antarctic AI Monitoring Map")
-
-if "directions_mode" not in st.session_state:
-    st.session_state.directions_mode = False
-
-st.info(
-    f"Route Preview: {start_location} → {end_location} | "
-    f"Selected: {selected_route}"
+replan_result = replan_route(
+    current_route_data,
+    alternative_routes
 )
 
-if st.button(
-    "🧭 Directions — Open Large Navigation Map",
-    use_container_width=True
-):
+if replan_result["status"] == "REPLANNED":
 
-    st.session_state.directions_mode = True
+    st.success(
+        f"Re-routing Recommended: "
+        f"{replan_result['route']['name']}"
+    )
+
+    st.write(
+        f"New Route Risk: "
+        f"{replan_result['route']['calculated_risk']}"
+    )
+
+    st.write(
+        f"New Route Distance: "
+        f"{replan_result['route']['distance_km']:.2f} km"
+    )
+
+    st.write(
+        replan_result["recommendation"]
+    )
+
+elif replan_result["status"] == "SAFE":
+
+    st.success(
+        "Current route is safe. "
+        "No re-routing required."
+    )
+
+else:
+
+    st.warning(
+        replan_result["recommendation"]
+    )
+
+
+# =========================================================
+# ANTARCTIC MONITORING MAP
+# =========================================================
+
+st.subheader("🗺️ Antarctic Monitoring Map")
+
+# Small control area OUTSIDE the map
+map_control_col, map_info_col = st.columns([1, 9])
+
+with map_control_col:
+
+    if st.session_state.map_expanded:
+
+        if st.button(
+            "↙ Close Map",
+            key="close_map_button",
+            use_container_width=True
+        ):
+            st.session_state.map_expanded = False
+            st.rerun()
+
+    else:
+
+        if st.button(
+            "⛶ Expand Map",
+            key="expand_map_button",
+            use_container_width=True
+        ):
+            st.session_state.map_expanded = True
+            st.rerun()
+
+with map_info_col:
+
+    if st.session_state.map_expanded:
+
+        st.caption(
+            "🗺️ Expanded Antarctic monitoring map"
+        )
+
+    else:
+
+        st.caption(
+            "Map controls are outside the map"
+        )
+
+
+# =========================================================
+# CREATE AND DISPLAY MAP
+# =========================================================
 
 try:
 
@@ -827,43 +824,30 @@ try:
         start_name=start_location,
         start_coords=(start_lat, start_lon),
         destination_name=end_location,
-        destination_coords=(end_lat, end_lon),
+        destination_coords=(end_lat, end_lon)
     )
 
-    if st.session_state.directions_mode:
-
-        st.subheader(
-            "🧭 Navigation Directions View"
-        )
-
-        if st.button(
-            "← Back to Normal Map View"
-        ):
-
-            st.session_state.directions_mode = False
-
-            st.rerun()
+    if st.session_state.map_expanded:
 
         st_folium(
             antarctic_map,
-            width=1500,
-            height=850,
-            key="large_navigation_map"
+            width="stretch",
+            height=700
         )
 
     else:
 
         st_folium(
-            antarctic_map,
-            width=1200,
-            height=650,
-            key="normal_navigation_map"
-        )
+    antarctic_map,
+    width="stretch",
+    height=700,
+    key="antarctic_map_expanded"
+)
 
 except Exception as e:
 
     st.error(
-        f"Map loading error: {e}"
+        f"Map error: {e}"
     )
 
 
@@ -871,26 +855,44 @@ except Exception as e:
 # SYSTEM STATUS
 # =========================================================
 
-st.subheader(
-    "🟢 System Status"
+st.subheader("📡 System Status")
+
+status_data = [
+    {
+        "Module": "Data Processing",
+        "Status": "ONLINE"
+    },
+    {
+        "Module": "AI Prediction",
+        "Status": "ONLINE"
+    },
+    {
+        "Module": "Risk Analysis",
+        "Status": "ONLINE"
+    },
+    {
+        "Module": "Route Optimization",
+        "Status": "ONLINE"
+    },
+    {
+        "Module": "Fuel Estimation",
+        "Status": "ONLINE"
+    },
+    {
+        "Module": "Dynamic Re-Routing",
+        "Status": "ONLINE"
+    },
+    {
+        "Module": "Antarctic Map",
+        "Status": "ONLINE"
+    }
+]
+
+st.dataframe(
+    status_data,
+    width="stretch"
 )
 
-st.write(
-    "✅ M2 — AI Prediction Module"
-)
-
-st.write(
-    "✅ M3 — Map & Navigation Module"
-)
-
-st.write(
-    "✅ M4 — Risk & Safety Intelligence Module"
-)
-
-st.write(
-    "✅ M6 — Smart Map Information Layer"
-)
-
-st.write(
-    "🚀 M1 — Main Application Integration"
+st.success(
+    "🟢 Antarctic AI Navigation System is ready for demonstration."
 )
