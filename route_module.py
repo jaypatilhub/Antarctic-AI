@@ -201,11 +201,20 @@ def rank_routes(routes, fuel_per_km=None, fuel_cost_per_liter=None):
     if not routes:
         raise ValueError("At least one route is required.")
 
+    # Internal ranking uses the new risk terminology.
     risk_order = {
-        "SAFE": 1,
-        "CAUTION": 2,
-        "DANGER": 3,
-        "INVALID": 4
+        "LOW": 1,
+        "MEDIUM": 2,
+        "HIGH": 3,
+        "CRITICAL": 4
+    }
+
+    # Compatibility with the older route-risk terminology.
+    risk_mapping = {
+        "SAFE": "LOW",
+        "CAUTION": "MEDIUM",
+        "DANGER": "HIGH",
+        "INVALID": "CRITICAL"
     }
 
     ranked_routes = []
@@ -226,6 +235,9 @@ def rank_routes(routes, fuel_per_km=None, fuel_cost_per_liter=None):
         else:
             risk = "INVALID"
 
+        # Convert old terminology to the new terminology.
+        risk = risk_mapping.get(risk, risk)
+
         if "fuel_cost" in route:
             fuel_cost = route["fuel_cost"]
 
@@ -240,17 +252,19 @@ def rank_routes(routes, fuel_per_km=None, fuel_cost_per_liter=None):
         else:
             fuel_cost = 0
 
+        normalized_risk = risk if risk in risk_order else "CRITICAL"
+
         score = calculate_route_score(
             route["distance_km"],
             fuel_cost,
-            risk if risk in risk_order else "INVALID"
+            normalized_risk
         )
 
         ranked_routes.append({
             "name": route.get("name", "Unnamed Route"),
             "distance_km": route["distance_km"],
             "fuel_cost": round(fuel_cost, 2),
-            "risk_level": risk,
+            "risk_level": normalized_risk,
             "score": score
         })
 
@@ -408,6 +422,15 @@ def recommend_best_route(routes):
     for route in routes:
 
         risk_level = route["risk_level"].strip().upper()
+
+        # Compatibility with older terminology.
+        risk_mapping = {
+            "SAFE": "LOW",
+            "CAUTION": "MEDIUM",
+            "DANGER": "HIGH"
+        }
+
+        risk_level = risk_mapping.get(risk_level, risk_level)
 
         if risk_level not in risk_priority:
             raise ValueError(
